@@ -2,11 +2,13 @@ package org.framework;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+
 import java.util.List;
 
 import org.framework.checker.ControllerChecker;
 
 import jakarta.servlet.ServletContext;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,6 +22,7 @@ public class FrontController extends HttpServlet {
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+
  // Récupérer l'objet ServletContext
     ServletContext context = getServletContext();
         
@@ -49,6 +52,18 @@ public class FrontController extends HttpServlet {
         
         } catch (Exception e) {
             out.println(e.getMessage());
+
+        response.setContentType("text/html;charset=UTF-8");
+        try (PrintWriter out = response.getWriter()) {
+            out.println("<!DOCTYPE html>");
+            out.println("<html>");
+            out.println("<head>");
+            out.println("<title>Servlet frontController</title>");            
+            out.println("</head>");
+            out.println("<body>");
+            out.println("<h1>Servlet frontController at " + request.getContextPath() + "</h1>");
+            out.println("</body>");
+            out.println("</html>");
         }
     }
 
@@ -64,4 +79,7 @@ public class FrontController extends HttpServlet {
         processRequest(request, response);
     }
 
+
 }
+}
+
