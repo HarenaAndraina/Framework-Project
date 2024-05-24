@@ -2,68 +2,85 @@ package org.framework;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-
 import java.util.List;
 
+import org.framework.annotation.RequestMapping;
 import org.framework.checker.ControllerChecker;
+import org.framework.checker.Mapping;
+import org.framework.checker.RequestMappingChecker;
 
+import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletContext;
-
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-/**
- *
- * @author Andra
- */
 public class FrontController extends HttpServlet {
+    private String packageName;
+    private RequestMappingChecker checker;
+
+    @Override
+    public void init(ServletConfig config) throws ServletException {
+        super.init(config);
+        // Récupérer l'objet ServletContext
+        ServletContext context = config.getServletContext();
+
+        // Récupérer la valeur du paramètre basePackage du contexte
+        this.packageName = context.getInitParameter("Package");
+        this.checker = new RequestMappingChecker();
+
+        try {
+            checker.getAllMethodMapping(packageName);
+        } catch (Exception e) {
+            throw new ServletException("Error initializing controller checker", e);
+        }
+    }
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
- // Récupérer l'objet ServletContext
-    ServletContext context = getServletContext();
-        
-    // Récupérer la valeur du paramètre basePackage du contexte
-    String packageName = context.getInitParameter("Package");
-    ControllerChecker check = new ControllerChecker();
-    response.setContentType("text/html;charset=UTF-8");
+        response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
-    try {
-        check.getAllClassController(packageName);
-        List<String> allClassesController = check.getClassController();
+        try {
+            String requestURL = request.getRequestURI();
+            String contextPath = request.getContextPath();
+            String relativeUrl = requestURL.substring(contextPath.length());
+
+            Mapping mapping = checker.getMethodByURL(relativeUrl);
+
+
+            // Récupérez le nom de la classe et de la méthode du mapping
+            String className = (mapping != null) ? mapping.getClassName() : "Class not found";
+            String methodName = (mapping != null) ? mapping.getMethodName() : "Method not found";
+
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet frontController</title>");
+            out.println("<title>Servlet FrontController</title>");
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet frontController at " + request.getContextPath() + "</h1>");
-            out.println("<h2>List of Controller Classes:</h2>");
+            out.println("<h1>Servlet FrontController at " + request.getContextPath() + "</h1>");
+            out.println("<h2>Controller Mapping:</h2>");
             out.println("<ul>");
-            for (String className : allClassesController) {
-                out.println("<li>" + className + "</li>");
-            }
+            out.println("<li>Class: " + className + "</li>");
+            out.println("<li>Method: " + methodName + "</li>");
             out.println("</ul>");
             out.println("</body>");
             out.println("</html>");
-        
         } catch (Exception e) {
             out.println(e.getMessage());
-
-        response.setContentType("text/html;charset=UTF-8");
-        try (PrintWriter out = response.getWriter()) {
+            response.setContentType("text/html;charset=UTF-8");
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet frontController</title>");            
+            out.println("<title>Servlet FrontController</title>");
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet frontController at " + request.getContextPath() + "</h1>");
+            out.println("<h1>Servlet FrontController at " + request.getContextPath() + "</h1>");
             out.println("</body>");
             out.println("</html>");
+        } finally {
+            out.close();
         }
     }
 
@@ -79,7 +96,5 @@ public class FrontController extends HttpServlet {
         processRequest(request, response);
     }
 
-
-}
 }
 
