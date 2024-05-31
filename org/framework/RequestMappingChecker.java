@@ -46,7 +46,7 @@ public class RequestMappingChecker {
                 Map<String, String> mappings = getRequestMappingMethods(clazz);
 
                 for (Map.Entry<String, String> entry : mappings.entrySet()) {
-                    addClassMapping(new Mapping(clazz.getSimpleName(), entry.getValue()), entry.getKey());
+                    addClassMapping(new Mapping(clazz.getName(), entry.getValue()), entry.getKey());
                 }
             }
         }
