@@ -8,6 +8,7 @@ import org.framework.annotation.RequestMapping;
 import org.framework.checker.ControllerChecker;
 import org.framework.checker.Mapping;
 import org.framework.checker.RequestMappingChecker;
+import org.framework.view.ModelAndView;
 
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletContext;
@@ -48,10 +49,7 @@ public class FrontController extends HttpServlet {
 
             Mapping mapping = checker.getMethodByURL(relativeUrl);
 
-
-            // Récupérez le nom de la classe et de la méthode du mapping
-            String className = (mapping != null) ? mapping.getClassName() : "Class not found";
-            String methodName = (mapping != null) ? mapping.getMethodName() : "Method not found";
+            String message= ModelAndView.showMessage(mapping);
 
             out.println("<!DOCTYPE html>");
             out.println("<html>");
@@ -59,12 +57,11 @@ public class FrontController extends HttpServlet {
             out.println("<title>Servlet FrontController</title>");
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet FrontController at " + request.getContextPath() + "</h1>");
-            out.println("<h2>Controller Mapping:</h2>");
-            out.println("<ul>");
-            out.println("<li>Class: " + className + "</li>");
-            out.println("<li>Method: " + methodName + "</li>");
-            out.println("</ul>");
+            out.println("<h1>Servlet FrontController at " + requestURL + "</h1>");
+            out.println("<h2>Controller message:</h2>");
+            out.println("<p>");
+            out.println(message);
+            out.println("</p>");
             out.println("</body>");
             out.println("</html>");
         } catch (Exception e) {
