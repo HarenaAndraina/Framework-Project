@@ -8,7 +8,7 @@ import org.framework.annotation.RequestMapping;
 import org.framework.checker.ControllerChecker;
 import org.framework.checker.Mapping;
 import org.framework.checker.RequestMappingChecker;
-import org.framework.view.ModelAndView;
+import org.framework.viewScan.ViewScan;
 
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletContext;
@@ -42,40 +42,18 @@ public class FrontController extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         PrintWriter out = response.getWriter();
+
         try {
             String requestURL = request.getRequestURI();
             String contextPath = request.getContextPath();
             String relativeUrl = requestURL.substring(contextPath.length());
 
+            out.println("<h1>Servlet FrontController at " + requestURL + "</h1>");
             Mapping mapping = checker.getMethodByURL(relativeUrl);
 
-            String message= ModelAndView.showMessage(mapping);
-
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet FrontController</title>");
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet FrontController at " + requestURL + "</h1>");
-            out.println("<h2>Controller message:</h2>");
-            out.println("<p>");
-            out.println(message);
-            out.println("</p>");
-            out.println("</body>");
-            out.println("</html>");
+           ViewScan.viewScanner(request, response, mapping);
         } catch (Exception e) {
             out.println(e.getMessage());
-            response.setContentType("text/html;charset=UTF-8");
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet FrontController</title>");
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet FrontController at " + request.getContextPath() + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
         } finally {
             out.close();
         }
@@ -94,4 +72,3 @@ public class FrontController extends HttpServlet {
     }
 
 }
-
