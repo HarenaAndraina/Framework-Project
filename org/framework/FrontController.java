@@ -2,12 +2,14 @@ package org.framework;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.framework.annotation.RequestMapping;
 import org.framework.checker.ControllerChecker;
 import org.framework.checker.Mapping;
 import org.framework.checker.RequestMappingChecker;
+import org.framework.exceptions.PackageNotFoundException;
 import org.framework.viewScan.ViewScan;
 
 import jakarta.servlet.ServletConfig;
@@ -18,23 +20,23 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 public class FrontController extends HttpServlet {
-    private String packageName;
     private RequestMappingChecker checker;
+    private List<String> error=new ArrayList<String>();
 
     @Override
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
+
         // Récupérer l'objet ServletContext
         ServletContext context = config.getServletContext();
 
-        // Récupérer la valeur du paramètre basePackage du contexte
-        this.packageName = context.getInitParameter("Package");
+        // Récupérer la valeur du paramètre basePackage du context
         this.checker = new RequestMappingChecker();
 
         try {
-            checker.getAllMethodMapping(packageName);
+            checker.getAllMethodMapping(context);
         } catch (Exception e) {
-            throw new ServletException("Error initializing controller checker", e);
+            this.error.add(e.getMessage());
         }
     }
 
@@ -48,10 +50,18 @@ public class FrontController extends HttpServlet {
             String contextPath = request.getContextPath();
             String relativeUrl = requestURL.substring(contextPath.length());
 
-            out.println("<h1>Servlet FrontController at " + requestURL + "</h1>");
-            Mapping mapping = checker.getMethodByURL(relativeUrl);
+            if (error.size() == 0) {
+                out.println("<h1>Servlet FrontController at " + requestURL + "</h1>");
 
-           ViewScan.viewScanner(request, response, mapping);
+                Mapping mapping = checker.getMethodByURL(relativeUrl);
+
+                ViewScan.viewScanner(request, response, mapping);
+            } else {
+                for (String string : error) {
+                    out.println("Error initializing RequestMapping: "+error);
+                }
+            }
+
         } catch (Exception e) {
             out.println(e.getMessage());
         } finally {

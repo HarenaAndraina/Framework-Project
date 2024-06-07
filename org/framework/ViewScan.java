@@ -11,10 +11,13 @@ import org.framework.checker.Mapping;
 import org.framework.checker.RequestMappingChecker;
 import org.framework.view.ModelView;
 import org.framework.exceptions.MappingNotFoundException;
+import org.framework.exceptions.ViewException;
 
 /**
  * ModelAndView
+ * //url mitovy controller roa mitovy url tsy misy package tsy misy type de retour 
  */
+
 public class ViewScan {
 
     public static String getJspByURL(String url) {
@@ -46,7 +49,7 @@ public class ViewScan {
             showMessage(response, (String) result);
         }
 
-        else if ( result.getClass().getSimpleName().startsWith("ModelView")) {
+        else if (result instanceof ModelView ) {
             ModelView modelView = (ModelView) result;
             HashMap<String, Object> data = modelView.getData();
 
@@ -59,6 +62,9 @@ public class ViewScan {
             RequestDispatcher dispatcher = null;
             dispatcher = request.getRequestDispatcher(modelView.getUrl());
             dispatcher.forward(request, response);
+        }
+        else{
+            throw new ViewException("instance of the method: "+methodName+" invalide");
         }
     }
 
