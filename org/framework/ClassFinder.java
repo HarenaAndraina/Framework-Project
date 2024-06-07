@@ -4,9 +4,12 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.framework.exceptions.ControllerNotFoundException;
+import org.framework.exceptions.PackageNotFoundException;
+
 public class ClassFinder {
-    public static List<Class<?>> findClassesController(String packageName) throws ClassNotFoundException {
-        packageName+=".controller";
+    public static List<Class<?>> findClassesController(String packageName) throws PackageNotFoundException,ControllerNotFoundException {
+        packageName += ".controller";
         String path = packageName.replace('.', '/');
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         List<Class<?>> classes = new ArrayList<>();
@@ -14,19 +17,24 @@ public class ClassFinder {
         try {
             File directory = new File(classLoader.getResource(path).getFile());
             if (directory.exists()) {
-                findClasses(directory, packageName, classes);
+                try {
+                    findClasses(directory, packageName, classes);
+                } catch (Exception e) {
+                    throw new ControllerNotFoundException("Controller Not Found Exception");
+                }
             } else {
-                System.err.println("Package '" + packageName + "' not found");
+                throw new PackageNotFoundException("Package Not Found Exception, check the context-param in web.xml");
             }
         } catch (NullPointerException e) {
             // Handle the case where the package doesn't exist
-            System.err.println("Package '" + packageName + "' not found");
+            throw new PackageNotFoundException("Package doesn't exist, check the context-param in web.xml");
         }
 
         return classes;
     }
 
-    private static void findClasses(File directory, String packageName, List<Class<?>> classes) throws ClassNotFoundException {
+    private static void findClasses(File directory, String packageName, List<Class<?>> classes)
+            throws ClassNotFoundException {
         if (!directory.exists()) {
             return;
         }
