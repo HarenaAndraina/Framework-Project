@@ -5,7 +5,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import jakarta.servlet.ServletContext;
+
 import org.framework.classSources.ClassFinder;
+import org.framework.exceptions.PackageNotFoundException;
+import org.framework.exceptions.RequestMappingException;
 import org.framework.annotation.RequestMapping;
 import org.framework.checker.ControllerChecker;
 import org.framework.checker.Mapping;
@@ -13,8 +17,13 @@ import org.framework.checker.Mapping;
 public class RequestMappingChecker {
     private Map<String, Mapping> mappingClasses = new HashMap<>();
 
-    public void addClassMapping(Mapping map, String annotationValue) {
+    public void addClassMapping(Mapping map, String annotationValue) throws RequestMappingException {
         String normalizedAnnotationValue = normalizeUrl(annotationValue);
+        
+        if (mappingClasses.containsKey(normalizedAnnotationValue)) {
+            throw new RequestMappingException("Duplicate URL detected for annotation value: " + annotationValue);    
+        }
+        
         this.mappingClasses.put(normalizedAnnotationValue, map);
     }
 
@@ -38,7 +47,13 @@ public class RequestMappingChecker {
         return requestMappingMethods;
     }
 
-    public void getAllMethodMapping(String packageName) throws Exception {
+    public void getAllMethodMapping(ServletContext context) throws Exception {
+        String packageName = context.getInitParameter("Package");
+        
+        if (packageName == null) {
+            throw new PackageNotFoundException("Package Not Found Exception, check the context-param in web.xml");
+        }
+
         List<Class<?>> allClasses = ClassFinder.findClassesController(packageName);
 
         for (Class<?> clazz : allClasses) {
