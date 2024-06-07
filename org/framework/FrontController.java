@@ -21,7 +21,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 public class FrontController extends HttpServlet {
     private RequestMappingChecker checker;
-    private List<String> error=new ArrayList<String>();
+    private String error= null;
 
     @Override
     public void init(ServletConfig config) throws ServletException {
@@ -36,7 +36,7 @@ public class FrontController extends HttpServlet {
         try {
             checker.getAllMethodMapping(context);
         } catch (Exception e) {
-            this.error.add(e.getMessage());
+            this.error=e.getMessage();
         }
     }
 
@@ -50,16 +50,14 @@ public class FrontController extends HttpServlet {
             String contextPath = request.getContextPath();
             String relativeUrl = requestURL.substring(contextPath.length());
 
-            if (error.size() == 0) {
+            if (this.error == null) {
                 out.println("<h1>Servlet FrontController at " + requestURL + "</h1>");
 
                 Mapping mapping = checker.getMethodByURL(relativeUrl);
 
                 ViewScan.viewScanner(request, response, mapping);
             } else {
-                for (String string : error) {
-                    out.println("Error initializing RequestMapping: "+error);
-                }
+                out.println("Error initializing RequestMapping: "+error);
             }
 
         } catch (Exception e) {

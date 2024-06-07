@@ -19,11 +19,11 @@ public class RequestMappingChecker {
 
     public void addClassMapping(Mapping map, String annotationValue) throws RequestMappingException {
         String normalizedAnnotationValue = normalizeUrl(annotationValue);
-        
+
         if (mappingClasses.containsKey(normalizedAnnotationValue)) {
-            throw new RequestMappingException("Duplicate URL detected for annotation value: " + annotationValue);    
+            throw new RequestMappingException("Duplicate URL detected for annotation value: " + annotationValue);
         }
-        
+
         this.mappingClasses.put(normalizedAnnotationValue, map);
     }
 
@@ -49,10 +49,6 @@ public class RequestMappingChecker {
 
     public void getAllMethodMapping(ServletContext context) throws Exception {
         String packageName = context.getInitParameter("Package");
-        
-        if (packageName == null) {
-            throw new PackageNotFoundException("Package Not Found Exception, check the context-param in web.xml");
-        }
 
         List<Class<?>> allClasses = ClassFinder.findClassesController(packageName);
 
@@ -65,6 +61,7 @@ public class RequestMappingChecker {
                 }
             }
         }
+
     }
 
     public Map<String, Mapping> getMappingClasses() {
