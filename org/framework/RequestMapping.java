@@ -9,8 +9,12 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface RequestMapping {
     String value();
+    RequestMethod method() default RequestMethod.GET;
 }
 
+enum RequestMethod {
+    GET, POST, PUT, DELETE
+}
 /*package org.framework.annotation;
 
 import java.lang.annotation.ElementType;

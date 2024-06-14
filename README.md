@@ -37,9 +37,19 @@
     </web-app>
 
 **Current functionality**
-* The `FrontController` class (located in `org\framework/FrontController.java`) captures the user's requested URL and displayes it in the browser. It also shows the details of the associated controller for that URL.
-* The `@Controller` annotation is used to annotate all classes that the developer wants to be scanned as a controller.
-* The `@GetMapping` annotation is used to map methods to specific URLs.
-* 
+* The `FrontController` class (located in `org.framework.FrontController`) captures the user's requested URL and displayes it in the browser. It also shows the details of the associated controller for that URL.
+
+* The `@Controller` annotation (located in `org.framework.annotation.Controller`) is used to annotate all classes that the developer wants to be scanned as a controller.
+
+* The `@RequestMapping` (located in `org.framework.annotation.RequestMapping`)  annotation is used to map methods to specific URLs.
+
+* The method using annotations can retrieve a `String` and simply display it.
+
+* The `ModelView` class (located in `org.framework.view.ModelView`) can also retrieve methods that use annotations. When instantiating the class, you need to add the name of the .jsp file. The `addObject` method in the class is used to place items that need to be displayed in the .jsp file.
+
+* The `RedirectView` class (located in `org.framework.view.RedirectView`) can also retrieve methods that just need to redirect to a .jsp file.
+
+* The argument of the method using the annotation can be only no parameter and String only
+
 
 @HarenaAndraina
