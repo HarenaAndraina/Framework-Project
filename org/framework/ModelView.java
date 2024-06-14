@@ -22,8 +22,7 @@ public class ModelView {
     public ModelView(String url) {
         this.url = url;
     }
-    public ModelView() {
-    }
+    
     
     public void addObject(String name,Object obj){
         setData(name, obj);
