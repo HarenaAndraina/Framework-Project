@@ -49,7 +49,59 @@
 
 * The `RedirectView` class (located in `org.framework.view.RedirectView`) can also retrieve methods that just need to redirect to a .jsp file.
 
-* The argument of the method using the annotation can be only no parameter and String only
+* The argument of the method using the annotation can be only `no parameter`,`String` and you can add class that you create
 
+* The `@Param` (located in `org.framework.annotation.Param`) is annotation argument of the method that you can add in the method two
+
+exemple use:
+    1- the Employe Class 
+    public class Employe {
+        private String pseudo;
+        private String password;
+        
+        public String getPseudo() {
+            return pseudo;
+        }
+        public void setPseudo(String pseudo) {
+            this.pseudo = pseudo;
+        }
+        public String getPassword() {
+            return password;
+        }
+        public void setPassword(String password) {
+            this.password = password;
+        }
+        
+        public Employe(String pseudo, String password) {
+            this.pseudo = pseudo;
+            this.password = password;
+        }
+        public Employe() {
+        }    
+    }
+
+    2- at the controller 
+    public ModelView getForm(@Param("empka") Employe emp){
+            ModelView model=new ModelView("bonjour.jsp");
+
+            model.addObject("pseudo", emp.getPseudo());
+            model.addObject("password", emp.getPassword());
+            return model;
+    }
+
+    3- at the views
+    <form action="${pageContext.request.contextPath}/login.do" method="post">
+        <label for="pseudo">pseudo:</label>
+        <input type="text" name="empka.pseudo">
+
+        <label for="password">password:</label>
+        <input type="password" name="empka.password">
+
+        <input type="submit" value="Valider">
+    </form>
+
+* And the same if you not use the annotation but it should be the name of the parameter take the place of empka  
+
+* The `@FieldParamName` is annotation that you can add in the class of the field that will map with the name of the input and if you not use it the field name take it as the same of the name of the input 
 
 @HarenaAndraina
