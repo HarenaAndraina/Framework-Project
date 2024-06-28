@@ -100,8 +100,8 @@ exemple use:
         <input type="submit" value="Valider">
     </form>
 
-* And the same if you not use the annotation but it should be the name of the parameter take the place of empka  
+* And the same if you do not use the annotation, but the name of the parameter should take the place of "empka".
 
-* The `@FieldParamName` is annotation that you can add in the class of the field that will map with the name of the input and if you not use it the field name take it as the same of the name of the input 
+* The `@FieldParamName`(lcoated at `org.framework.annotation.FieldParamName` )  annotation can be added to the class field that will be mapped with the name of the input. If you do not use it, the field name will be taken as the same as the name of the input. 
 
 @HarenaAndraina

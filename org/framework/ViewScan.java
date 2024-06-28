@@ -24,6 +24,7 @@ import org.framework.annotation.FieldParamName;
 import org.framework.annotation.Param;
 import org.framework.exceptions.InvocationMethodException;
 import org.framework.exceptions.MappingNotFoundException;
+import org.framework.exceptions.ParamException;
 import org.framework.exceptions.ViewException;
 
 import com.thoughtworks.paranamer.AdaptiveParanamer;
@@ -113,7 +114,7 @@ public class ViewScan {
     }
 
     private static Object invokingMethod(HttpServletRequest request, String className, String methodName)
-            throws InvocationMethodException {
+            throws InvocationMethodException,ParamException {
         Object result = null;
         try {
             Class<?> clazz = Class.forName(className);
@@ -163,7 +164,11 @@ public class ViewScan {
 
                 Object[] args = new Object[parameterCount];
                 ParamChecker checkerAnnotationParam = new ParamChecker();
-                checkerAnnotationParam.getAllMethodParam(parameters);
+                try {
+                    checkerAnnotationParam.getAllMethodParam(parameters);
+                } catch (ParamException e) {
+                    throw e;
+                }
                 List<ParamWithType> listParam = checkerAnnotationParam.getParamList();
 
                 for (int i = 0; i < args.length; i++) {
@@ -209,7 +214,6 @@ public class ViewScan {
         try {
             Object paramObject = paramClass.getDeclaredConstructor().newInstance();
             Field[] fields = paramClass.getDeclaredFields();
-
             for (Field field2 : fields) {
                 field2.setAccessible(true);
                 if (field2.isAnnotationPresent(FieldParamName.class)) {
