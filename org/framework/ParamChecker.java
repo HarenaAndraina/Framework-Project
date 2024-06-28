@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.framework.annotation.Param;
+import org.framework.exceptions.ParamException;
 
 public class ParamChecker {
     private List<ParamWithType> paramList = new ArrayList<>();
@@ -30,13 +31,15 @@ public class ParamChecker {
         }
     }
     
-    public void getAllMethodParam(Parameter[] parameters) {
+    public void getAllMethodParam(Parameter[] parameters) throws ParamException {
         for (Parameter parameter2 : parameters) {
             if (parameter2.isAnnotationPresent(Param.class)) {
                 Param paramAnnotation=parameter2.getAnnotation(Param.class);
                 Class<?> paramType=parameter2.getType();
                 setParamList(new ParamWithType(paramAnnotation, paramType));
-            } 
+            }else{
+                throw new ParamException("ETU002353: il faut ajouter une anotation param sur l'argument");
+            }
         }
     }
 
