@@ -6,14 +6,16 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.Type;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
-import org.framework.checker.FieldParamNameChecker;
 import org.framework.checker.Mapping;
 import org.framework.checker.ParamChecker;
 import org.framework.checker.RequestMappingChecker;
@@ -26,6 +28,7 @@ import org.framework.exceptions.InvocationMethodException;
 import org.framework.exceptions.MappingNotFoundException;
 import org.framework.exceptions.ParamException;
 import org.framework.exceptions.ViewException;
+import org.framework.session.CustomSession;
 
 import com.thoughtworks.paranamer.AdaptiveParanamer;
 import com.thoughtworks.paranamer.Paranamer;
@@ -37,6 +40,7 @@ import com.thoughtworks.paranamer.Paranamer;
  */
 
 public class ViewScan {
+    private static CustomSession customSession;
 
     public static String getJspByURL(String url) {
         // Split the normalized URL by '/'
@@ -114,7 +118,7 @@ public class ViewScan {
     }
 
     private static Object invokingMethod(HttpServletRequest request, String className, String methodName)
-            throws InvocationMethodException,ParamException {
+            throws InvocationMethodException, ParamException {
         Object result = null;
         try {
             Class<?> clazz = Class.forName(className);
@@ -136,7 +140,6 @@ public class ViewScan {
             }
 
             int parameterCount = method.getParameterCount();
-
             Object instance = null;
             if (!java.lang.reflect.Modifier.isStatic(method.getModifiers())) {
                 instance = clazz.getDeclaredConstructor().newInstance();
@@ -147,45 +150,29 @@ public class ViewScan {
             } else {
                 Parameter[] parameters = method.getParameters();
                 Class<?>[] parameterTypes = new Class[parameterCount];
-                for (int i = 0; i < parameterTypes.length; i++) {
-                    parameterTypes[i] = parameters[i].getType();
-                }
-
-                Method method1 = clazz.getMethod(methodName, parameterTypes);
-                Paranamer paranamer = new AdaptiveParanamer();
-                String[] parameterNames = new String[parameterCount];
-
-                try {
-                    parameterNames = paranamer.lookupParameterNames(method1);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    throw new InvocationMethodException("There is some trouble in paranamer");
-                }
-
                 Object[] args = new Object[parameterCount];
                 ParamChecker checkerAnnotationParam = new ParamChecker();
+                int idParamSession = -1;
+
+                for (int i = 0; i < parameterTypes.length; i++) {
+                    if (parameters[i].getType().equals(CustomSession.class)) {
+                        syncHttpSessionToCustomSession(request);
+                        CustomSession customSession = getCustomSession();
+                        args[i] = customSession;
+                        idParamSession = i;
+                    }
+                }
+
                 try {
                     checkerAnnotationParam.getAllMethodParam(parameters);
                 } catch (ParamException e) {
                     throw e;
                 }
+
                 List<ParamWithType> listParam = checkerAnnotationParam.getParamList();
 
                 for (int i = 0; i < args.length; i++) {
-                    if (listParam.size() == 0) {
-                        Parameter parameter = parameters[i];
-                        String paramName = parameterNames[i];
-                        if (parameter.getType() == String.class) {
-                            addArgsString(request, args, i, paramName);
-                        } else {
-                            Class<?> paramClass = parameter.getType();
-                            try {
-                                addArgsObject(request, args, i, paramName, paramClass);
-                            } catch (InvocationMethodException e) {
-                                throw e;
-                            }
-                        }
-                    } else {
+                    if (i != idParamSession) {
                         String paramName = listParam.get(i).getParam().value();
                         if (!listParam.get(i).getType().equals(String.class)) {
                             Class<?> paramClass = listParam.get(i).getType();
@@ -198,8 +185,10 @@ public class ViewScan {
                             addArgsString(request, args, i, paramName);
                         }
                     }
-                    result = method.invoke(instance, args);
                 }
+
+                result = method.invoke(instance, args);
+                syncCustomSessionToHttpSession(request);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -269,5 +258,34 @@ public class ViewScan {
         } else {
             throw new IllegalArgumentException("Unsupported field type: " + fieldType);
         }
+    }
+
+    // Méthode pour synchroniser HttpSession vers CustomSession
+    public static void syncHttpSessionToCustomSession(HttpServletRequest request) {
+        HttpSession httpSession = request.getSession();
+        Enumeration<String> attributeNames = httpSession.getAttributeNames();
+
+        while (attributeNames.hasMoreElements()) {
+            String attributeName = attributeNames.nextElement();
+            Object attributeValue = httpSession.getAttribute(attributeName);
+            getCustomSession().getSessionList().put(attributeName, attributeValue);
+        }
+    }
+
+    // Méthode pour synchroniser CustomSession vers HttpSession
+    public static void syncCustomSessionToHttpSession(HttpServletRequest request) {
+        HttpSession httpSession = request.getSession();
+        Map<String, Object> sessionList = getCustomSession().getSessionList();
+
+        for (Map.Entry<String, Object> entry : sessionList.entrySet()) {
+            httpSession.setAttribute(entry.getKey(), entry.getValue());
+        }
+    }
+
+    public static synchronized CustomSession getCustomSession() {
+        if (customSession == null) {
+            customSession = new CustomSession();
+        }
+        return customSession;
     }
 }
