@@ -104,4 +104,9 @@ exemple use:
 
 * The `@FieldParamName`(lcoated at `org.framework.annotation.FieldParamName` )  annotation can be added to the class field that will be mapped with the name of the input. If you do not use it, the field name will be taken as the same as the name of the input. 
 
+* objectif  body response type json
+ creation restapi association url
+frontservlet: traitement methode verification annotation si existe: raha tsy mireturn model and view dia avadika json fotsin mampiasa lib gson,
+raha mireturn model and view alaina le izy de avadika json aveo
+aveo tsy mampiasa dispatchforward fa atao getwriter fotsin dia printjson dia ovaina le type content type json 
 @HarenaAndraina
