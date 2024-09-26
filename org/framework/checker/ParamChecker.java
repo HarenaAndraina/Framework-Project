@@ -1,13 +1,12 @@
 package org.framework.checker;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.framework.annotation.Param;
 import org.framework.exceptions.ParamException;
+
 import org.framework.session.CustomSession;
 
 public class ParamChecker {
@@ -32,9 +31,7 @@ public class ParamChecker {
     }
     
     public void getAllMethodParam(Parameter[] parameters) throws ParamException {
-        int count=0;
         for (Parameter parameter2 : parameters) {
-            count++;
             if (parameter2.isAnnotationPresent(Param.class) || parameter2.getType().equals(CustomSession.class)) {
                 Param paramAnnotation=parameter2.getAnnotation(Param.class);
                 Class<?> paramType=parameter2.getType();

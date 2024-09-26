@@ -1,10 +1,9 @@
 package org.framework.checker;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import org.framework.annotation.Controller;
+
 import org.framework.classSources.ClassFinder;
 
 public class ControllerChecker {

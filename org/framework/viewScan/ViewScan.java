@@ -1,5 +1,6 @@
 package org.framework.viewScan;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -11,27 +12,27 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import jakarta.servlet.RequestDispatcher;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
-
+import org.framework.annotation.FieldParamName;
+import org.framework.annotation.Param;
 import org.framework.checker.Mapping;
 import org.framework.checker.ParamChecker;
 import org.framework.checker.RequestMappingChecker;
-import org.framework.view.ModelView;
-import org.framework.view.RedirectView;
 import org.framework.checker.ParamChecker.ParamWithType;
-import org.framework.annotation.FieldParamName;
-import org.framework.annotation.Param;
 import org.framework.exceptions.InvocationMethodException;
 import org.framework.exceptions.MappingNotFoundException;
 import org.framework.exceptions.ParamException;
 import org.framework.exceptions.ViewException;
+import org.framework.view.RedirectView;
+
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import org.framework.view.ModelView;
 import org.framework.session.CustomSession;
 
-import com.thoughtworks.paranamer.AdaptiveParanamer;
-import com.thoughtworks.paranamer.Paranamer;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 /**
  * ModelAndView
@@ -53,12 +54,24 @@ public class ViewScan {
         return jspFile;
     }
 
-    public static void viewScanner(HttpServletRequest request, HttpServletResponse response, Mapping map)
+    public static void viewScanner(HttpServletRequest request, HttpServletResponse response, String requestURL,Mapping map,
+            Mapping mapRestAPI)
             throws Exception {
-        if (map == null) {
+        if (map == null && mapRestAPI == null) {
             throw new MappingNotFoundException("Mapping Not Found");
         }
 
+        if (mapRestAPI != null) {
+            processMapping(request, response, requestURL,mapRestAPI, true);
+        }
+        if (map != null) {
+            processMapping(request, response,requestURL, map, false);
+        }
+
+    }
+
+    private static void processMapping(HttpServletRequest request, HttpServletResponse response,String requestURL,Mapping map,
+            boolean isRestAPI) throws Exception {
         String className = map.getClassName();
         String methodName = map.getMethodName();
         Object result = null;
@@ -70,37 +83,80 @@ public class ViewScan {
         }
 
         if (result != null) {
-            if (result instanceof String) {
-                showMessage(response, (String) result);
-            }
-
-            else if (result instanceof ModelView) {
-                ModelView modelView = (ModelView) result;
-                HashMap<String, Object> data = modelView.getData();
-
-                for (String key : data.keySet()) {
-                    Object value = data.get(key);
-
-                    request.setAttribute(key, value);
-                }
-
-                RequestDispatcher dispatcher = null;
-                dispatcher = request.getRequestDispatcher(modelView.getUrl());
-                dispatcher.forward(request, response);
-            } else if (result instanceof RedirectView) {
-                RedirectView redirectView = (RedirectView) result;
-
-                RequestDispatcher dispatcher = null;
-                dispatcher = request.getRequestDispatcher(redirectView.getUrl());
-                dispatcher.forward(request, response);
+            if (isRestAPI) {
+                handleRestAPIResponse(response, requestURL,result);
             } else {
-                throw new ViewException("instance of the method: " + methodName + " invalide");
+                handleWebResponse(request, response, requestURL,result);
             }
+        } else {
+            throw new ViewException("Method: " + methodName + " returned a null result");
         }
-
     }
 
-    private static void showMessage(HttpServletResponse response, String message) throws Exception {
+    private static void handleRestAPIResponse(HttpServletResponse response, String requestURL,Object result) throws Exception {
+        if (result instanceof String) {
+            showMessageJson(response, requestURL,(String) result);
+        } else if (result instanceof ModelView) {
+            showModelViewJson(response, requestURL,(ModelView) result);
+        } else {
+            throw new ViewException("Unsupported return type for REST API");
+        }
+    }
+
+    private static void handleWebResponse(HttpServletRequest request, HttpServletResponse response, String requestURL,Object result)
+            throws Exception {
+        if (result instanceof String) {
+            showMessage(response, requestURL,(String) result);
+        } else if (result instanceof ModelView) {
+            ModelView modelView = (ModelView) result;
+            HashMap<String, Object> data = modelView.getData();
+
+            for (String key : data.keySet()) {
+                Object value = data.get(key);
+
+                request.setAttribute(key, value);
+            }
+
+            RequestDispatcher dispatcher = null;
+            dispatcher = request.getRequestDispatcher(modelView.getUrl());
+            dispatcher.forward(request, response);
+        } else if (result instanceof RedirectView) {
+            RedirectView redirectView = (RedirectView) result;
+
+            RequestDispatcher dispatcher = null;
+            dispatcher = request.getRequestDispatcher(redirectView.getUrl());
+            dispatcher.forward(request, response);
+        } else {
+            throw new ViewException("Unsupported return type for Web response");
+        }
+    }
+
+    private static void showMessageJson(HttpServletResponse response, String requestURL,String message) throws IOException {
+        response.setContentType("application/json;charset=UTF-8");
+        response.setCharacterEncoding("UTF-8");
+
+        try (PrintWriter out = response.getWriter()) {
+            // Construction du JSON
+            String json = "{\"message\": \"" + message + "\"}";
+            out.print(json);
+            out.flush();
+        }
+    }
+
+    private static void showModelViewJson(HttpServletResponse response, String requestURL,ModelView result) throws IOException {
+        response.setContentType("application/json;charset=UTF-8");
+        response.setCharacterEncoding("UTF-8");
+
+        HashMap<String, Object> data = result.getData();
+        try (PrintWriter out = response.getWriter()) {
+            Gson gson = new Gson();
+            String json = gson.toJson(data);
+            out.print(json);
+            out.flush();
+        }
+    }
+
+    private static void showMessage(HttpServletResponse response, String requestURL,String message) throws Exception {
         response.setContentType("text/html;charset=UTF-8");
         try (PrintWriter out = response.getWriter()) {
             out.println("<!DOCTYPE html>");
@@ -109,6 +165,7 @@ public class ViewScan {
             out.println("<title>Servlet FrontController</title>");
             out.println("</head>");
             out.println("<body>");
+            out.println("<h1>Servlet FrontController at " + requestURL + "</h1>");
             out.println("<p>");
             out.println(message);
             out.println("</p>");
