@@ -8,9 +8,12 @@ import java.util.Map;
 import org.framework.annotation.RequestMapping;
 import org.framework.exceptions.PackageNotFoundException;
 import org.framework.exceptions.RequestMappingException;
+import org.framework.annotation.outil.RequestMethod;
+import org.framework.classSources.ClassFinder;
 
 import jakarta.servlet.ServletContext;
-import org.framework.classSources.ClassFinder;
+import jakarta.servlet.http.HttpServletRequest;
+
 
 public class RequestMappingChecker {
     private Map<String, Mapping> mappingClasses = new HashMap<>();
@@ -33,18 +36,22 @@ public class RequestMappingChecker {
         }
         return false;
     }
-
-    public Map<String, String> getRequestMappingMethods(Class<?> clazz) {
-        Map<String, String> requestMappingMethods = new HashMap<>();
+    
+    public Map<String, Mapping> getRequestMappingMethods(Class<?> clazz) throws RequestMappingException {
+        Map<String, Mapping> requestMappingMethods = new HashMap<>();
         for (Method method : clazz.getDeclaredMethods()) {
             if (method.isAnnotationPresent(RequestMapping.class)) {
                 RequestMapping requestMapping = method.getAnnotation(RequestMapping.class);
-                requestMappingMethods.put(requestMapping.value(), method.getName());
+                
+                Mapping map=new Mapping(clazz.getName(),method.getName(), requestMapping.method());
+                
+                requestMappingMethods.put(requestMapping.value(), map);
             }
         }
         return requestMappingMethods;
     }
 
+    
     public void getAllMethodMapping(ServletContext context) throws Exception {
         String packageName = context.getInitParameter("Package");
 
@@ -52,10 +59,10 @@ public class RequestMappingChecker {
 
         for (Class<?> clazz : allClasses) {
             if (hasRequestMapping(clazz)) {
-                Map<String, String> mappings = getRequestMappingMethods(clazz);
+                Map<String, Mapping> mappings = getRequestMappingMethods(clazz);
 
-                for (Map.Entry<String, String> entry : mappings.entrySet()) {
-                    addClassMapping(new Mapping(clazz.getName(), entry.getValue()), entry.getKey());
+                for (Map.Entry<String, Mapping> entry : mappings.entrySet()) {
+                    addClassMapping(entry.getValue(), entry.getKey());
                 }
             }
         }
@@ -66,9 +73,16 @@ public class RequestMappingChecker {
         return mappingClasses;
     }
 
-    public Mapping getMethodByURL(String url) {
+    public Mapping getMethodByURL(String url,HttpServletRequest request) throws RequestMappingException
+     {
         String normalizedUrl = normalizeUrl(url);
-        return mappingClasses.getOrDefault(normalizedUrl, null);
+        Mapping map=mappingClasses.getOrDefault(normalizedUrl, null);
+        
+        if(!map.getVerbe().name().equalsIgnoreCase(request.getMethod())){
+            throw new RequestMappingException("Supported HTTP method for this URL is: " + map.getVerbe().name());
+        }
+        
+        return map;
     }
 
     private String normalizeUrl(String url) {

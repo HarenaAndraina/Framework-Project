@@ -6,11 +6,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.framework.annotation.RequestMapping;
+import org.framework.annotation.outil.RequestMethod;
 import org.framework.checker.Mapping;
 import org.framework.checker.RequestMappingChecker;
 import org.framework.checker.RestAPIChecker;
 import org.framework.exceptions.PackageNotFoundException;
-
+import org.framework.exceptions.RequestMappingException;
 import org.framework.checker.ControllerChecker;
 import org.framework.viewScan.ViewScan;
 
@@ -37,6 +38,7 @@ public class FrontController extends HttpServlet {
         this.checker = new RequestMappingChecker();
 
         this.checkerRestAPI = new RestAPIChecker();
+        
         try {
             checker.getAllMethodMapping(context);
 
@@ -56,11 +58,20 @@ public class FrontController extends HttpServlet {
 
             if (this.error == null) {
 
-                Mapping mapping = checker.getMethodByURL(relativeUrl);
+                try {
+                    Mapping mapping = checker.getMethodByURL(relativeUrl,request);
 
-                Mapping mapping2 = checkerRestAPI.getMethodByURL(relativeUrl);
+                    Mapping mapping2 = checkerRestAPI.getMethodByURL(relativeUrl);
 
-                ViewScan.viewScanner(request, response,requestURL,mapping, mapping2);
+                    ViewScan.viewScanner(request, response,requestURL,mapping, mapping2);
+                } catch (Exception e) {
+                    response.setContentType("text/html;charset=UTF-8");
+                    PrintWriter out = response.getWriter();
+                    out.println(e.getMessage());
+                    out.close();        
+                }
+                
+                
             } else {
                 response.setContentType("text/html;charset=UTF-8");
                 PrintWriter out = response.getWriter();
