@@ -39,8 +39,6 @@ if (Test-Path $tempDir -PathType Container) {
     Remove-Item -Path $tempDir -Recurse -Force
 }
 
-New-Item -Path $tempDir -ItemType Directory | Out-Null
-
 # Créer un dossier temporaire pour les fichiers .java needed tto change into temperary direc
 $tempJavaDir = Join-Path -Path $env:TEMP -ChildPath "tempJavaSource"
 
@@ -49,7 +47,8 @@ if (-Not (Test-Path $tempJavaDir)) {
 }
 else {
     # Nettoyer le dossier temporaire s'il existe déjà
-    Remove-Item -Path $tempJavaDir\* -Force
+    Remove-Item -Path $tempJavaDir -Recurse -Force
+    New-Item -Path $tempDir -ItemType Directory | Out-Null
 }
 
 # Compilation des fichiers .java vers le répertoire temporaire
@@ -150,16 +149,14 @@ Copy-Item -Path $webFolderPath\* -Destination $env:temp -Force
 $javaFilesPath = Join-Path -Path $projectFolder -ChildPath "src"  # Chemin des fichiers .java
 
 # Créer un dossier temporaire pour les fichiers .java needed to change into temperary direc
-$tempJavaDir1 = Join-Path -Path $javaFilesPath -ChildPath "tempJavaSource1"
+$tempJavaSource1 = Join-Path -Path $javaFilesPath -ChildPath "tempJavaSource1"
 
-New-Item -Path $tempJavaDir1 -ItemType Directory | Out-Null
-
-if (-Not (Test-Path $tempJavaDir1)) {
-    New-Item -Path $tempJavaDir1 -ItemType Directory | Out-Null
+if (Test-Path $tempJavaSource1) {
+    Remove-Item -Path $tempJavaSource1 -Recurse -Force
+    New-Item -Path $tempJavaSource1 -ItemType Directory | Out-Null
 }
 else {
-    # Nettoyer le dossier temporaire s'il existe déjà
-    Remove-Item -Path $tempJavaDir1\* -Force
+    New-Item -Path $tempJavaSource1 -ItemType Directory | Out-Null
 }
 
 # Compilation des fichiers .java vers le répertoire temporaire "web-inf/classes" en incluant le JAR dans le classpath
@@ -171,11 +168,11 @@ if (Test-Path $javaFilesPath -PathType Container) {
     if ($javaFile) {
         # Copier tous les fichiers .java dans le dossier temporaire
         foreach ($file in $javaFile) {
-            Copy-Item -Path $file.FullName -Destination $tempJavaDir1
+            Copy-Item -Path $file.FullName -Destination $tempJavaSource1
         }
          
         # Compiler tous les fichiers .java dans le dossier temporaire
-        Set-Location $tempJavaDir1
+        Set-Location $tempJavaSource1
         try {
             javac -cp $lib\project.jar -d $classesPath *.java
             Write-Host "Les fichiers .java ont été compilés vers le répertoire temporaire web-inf/classes."         
@@ -254,6 +251,8 @@ if (Test-Path "C:\S5\FRAMEWORK\Framework-Project\script\sprint.war") {
     # Supprimer le contenu du dossier bin
     #Remove-Item -Path "C:\S5\FRAMEWORK\Framework-Project\script\bin\*" -Force -Recurse
     #Write-Host "Le contenu du dossier bin a été supprimé."
+
+    #Remove-Item -Path "C:\S5\FRAMEWORK\Test-Framework\src\tempJavaSource1" -Force -Recurse
 
     # Redémarrer Tomcat après la mise à jour
     #Start-Tomcat
