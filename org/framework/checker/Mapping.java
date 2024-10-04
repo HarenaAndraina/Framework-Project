@@ -1,11 +1,9 @@
 package org.framework.checker;
 
-import org.framework.annotation.outil.RequestMethod;
-
 public class Mapping {
     private String className;
     private String methodName;
-    private RequestMethod verbe;
+    private boolean isPost;
     
     public String getClassName() {
         return className;
@@ -13,11 +11,11 @@ public class Mapping {
     public String getMethodName() {
         return methodName;
     }
-    public RequestMethod getVerbe() {
-        return verbe;
+    public boolean isPost() {
+        return isPost;
     }
-    public void setVerbe(RequestMethod verbe) {
-        this.verbe = verbe;
+    public void setPost(boolean isPost) {
+        this.isPost = isPost;
     }
     
     public void setClassName(String className) {
@@ -33,10 +31,10 @@ public class Mapping {
     }
     public Mapping() {
     }
-    public Mapping(String className, String methodName, RequestMethod verbe) {
+    public Mapping(String className, String methodName, boolean isPost) {
         this.className = className;
         this.methodName = methodName;
-        this.verbe = verbe;
+        this.isPost = isPost;
     }
-   
+    
 }

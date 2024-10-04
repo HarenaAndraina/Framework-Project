@@ -5,10 +5,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.framework.annotation.Post;
 import org.framework.annotation.RequestMapping;
+import org.framework.annotation.RequestMethod;
 import org.framework.exceptions.PackageNotFoundException;
 import org.framework.exceptions.RequestMappingException;
-import org.framework.annotation.outil.RequestMethod;
 import org.framework.classSources.ClassFinder;
 
 import jakarta.servlet.ServletContext;
@@ -42,8 +43,13 @@ public class RequestMappingChecker {
         for (Method method : clazz.getDeclaredMethods()) {
             if (method.isAnnotationPresent(RequestMapping.class)) {
                 RequestMapping requestMapping = method.getAnnotation(RequestMapping.class);
+                boolean isPost=false;
                 
-                Mapping map=new Mapping(clazz.getName(),method.getName(), requestMapping.method());
+                if (method.isAnnotationPresent(Post.class)) {
+                    isPost =true;
+                }
+                
+                Mapping map=new Mapping(clazz.getName(),method.getName(),isPost);
                 
                 requestMappingMethods.put(requestMapping.value(), map);
             }
@@ -51,7 +57,6 @@ public class RequestMappingChecker {
         return requestMappingMethods;
     }
 
-    
     public void getAllMethodMapping(ServletContext context) throws Exception {
         String packageName = context.getInitParameter("Package");
 
@@ -66,7 +71,6 @@ public class RequestMappingChecker {
                 }
             }
         }
-
     }
 
     public Map<String, Mapping> getMappingClasses() {
@@ -76,12 +80,14 @@ public class RequestMappingChecker {
     public Mapping getMethodByURL(String url,HttpServletRequest request) throws RequestMappingException
      {
         String normalizedUrl = normalizeUrl(url);
-        Mapping map=mappingClasses.getOrDefault(normalizedUrl, null);
+        Mapping map=mappingClasses.getOrDefault(normalizedUrl, null); 
         
-        if(!map.getVerbe().name().equalsIgnoreCase(request.getMethod())){
-            throw new RequestMappingException("Supported HTTP method for this URL is: " + map.getVerbe().name());
+        if (map.isPost() && request.getMethod().equalsIgnoreCase("GET")) {
+            throw new RequestMappingException("");
         }
-        
+        else if (!map.isPost() && request.getMethod().equalsIgnoreCase("POST")) {
+            throw new RequestMappingException("");
+        }
         return map;
     }
 
