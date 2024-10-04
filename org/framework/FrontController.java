@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.framework.annotation.RequestMapping;
-import org.framework.annotation.outil.RequestMethod;
+import org.framework.annotation.RequestMethod;
 import org.framework.checker.Mapping;
 import org.framework.checker.RequestMappingChecker;
 import org.framework.checker.RestAPIChecker;
@@ -70,8 +70,7 @@ public class FrontController extends HttpServlet {
                     out.println(e.getMessage());
                     out.close();        
                 }
-                
-                
+
             } else {
                 response.setContentType("text/html;charset=UTF-8");
                 PrintWriter out = response.getWriter();
@@ -84,7 +83,6 @@ public class FrontController extends HttpServlet {
             PrintWriter out = response.getWriter();
             out.println(e.getMessage());
             out.close();
-
         }
     }
 
