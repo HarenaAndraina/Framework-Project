@@ -1,10 +1,12 @@
 package org.framework.checker;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.framework.annotation.Post;
 import org.framework.annotation.RestAPI;
 import org.framework.classSources.ClassFinder;
 import org.framework.exceptions.RequestMappingException;
@@ -15,16 +17,26 @@ import jakarta.servlet.ServletContext;
 
 
 public class RestAPIChecker {
-    private Map<String,Mapping> mappingClasses=new HashMap<>();
+    private List<Mapping> mappingClasses=new ArrayList<>();
 
-    public void addClassMapping(Mapping map,String annotationValue) throws RequestMappingException{
-        String normalizeAnnotationValue=normalizeUrl(annotationValue);
+    public void addClassMapping(Mapping map) throws RequestMappingException{
+        String normalizeAnnotationValue=normalizeUrl(map.getUrl());
     
-        if(mappingClasses.containsKey(normalizeAnnotationValue)){
-            throw new RequestMappingException("Duplicate URL detected for annotation value: " + annotationValue);
+        map.setUrl(normalizeAnnotationValue);
+        System.out.println(map.getMethodName());
+        System.out.println(map.getUrl());
+        System.out.println("aaa");
+
+        for (Mapping mapping : mappingClasses) {
+            if (map.getUrl().equals(mapping.getUrl())) {
+                throw new RequestMappingException("Duplicate URL at "+map.getClassName()+" class");
+            }
+            if (map.getMethodName().equals(mapping.getMethodName())) {
+                throw new RequestMappingException("Duplicate method at "+map.getClassName()+" class");
+            }
         }
 
-        this.mappingClasses.put(normalizeAnnotationValue, map);
+        this.mappingClasses.add(map);
     }
 
     boolean hasRestAPIMapping(Class<?> clazz){
@@ -36,12 +48,17 @@ public class RestAPIChecker {
         return false;
     }
 
-    public Map<String,String> getRestAPIMethods(Class<?> clazz){
-        Map<String,String>  restAPIMethods=new HashMap<>();
+    public List<Mapping> getRestAPIMethods(Class<?> clazz){
+        List<Mapping>  restAPIMethods=new ArrayList<>();
         for (Method method : clazz.getDeclaredMethods()) {
             if (method.isAnnotationPresent(RestAPI.class)) {
                 RestAPI restAPI=method.getAnnotation(RestAPI.class);
-                restAPIMethods.put(restAPI.value(),method.getName());
+                 Mapping map=new Mapping(clazz.getName(),method.getName(),restAPI.value());
+                
+                if (method.isAnnotationPresent(Post.class)) {
+                    map.setPost(true);
+                }
+                restAPIMethods.add(map);
             }
         }
         return restAPIMethods;
@@ -54,22 +71,28 @@ public class RestAPIChecker {
 
         for (Class<?> class1 : allClasses) {
             if (hasRestAPIMapping(class1)) {
-                Map<String,String> mappings=getRestAPIMethods(class1);
+                List<Mapping> mappings=getRestAPIMethods(class1);
 
-                for (Map.Entry<String,String> entry : mappings.entrySet()) {
-                    addClassMapping(new Mapping(class1.getName(), entry.getValue()), entry.getKey());
+                for (Mapping map : mappings) {
+                    addClassMapping(map);
                 }
             }
         }
     }
 
-    public Map<String, Mapping> getMappingClasses() {
+    public List< Mapping> getMappingClasses() {
         return mappingClasses;
     }
 
     public Mapping getMethodByURL(String url) {
         String normalizedUrl = normalizeUrl(url);
-        return mappingClasses.getOrDefault(normalizedUrl, null);
+        Mapping map=null;
+        for (Mapping mapping : mappingClasses) {
+            if (mapping.getUrl().equals(normalizedUrl)) {
+                map=mapping;
+            }
+        }
+        return map;
     }
     
     private String normalizeUrl(String url){

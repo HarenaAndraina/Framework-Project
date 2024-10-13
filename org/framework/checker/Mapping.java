@@ -3,6 +3,7 @@ package org.framework.checker;
 public class Mapping {
     private String className;
     private String methodName;
+    private String url;
     private boolean isPost;
     
     public String getClassName() {
@@ -25,16 +26,20 @@ public class Mapping {
         this.methodName = methodName;
     }
     
-    public Mapping(String className, String methodName) {
-        this.className = className;
-        this.methodName = methodName;
-    }
+    
     public Mapping() {
     }
-    public Mapping(String className, String methodName, boolean isPost) {
+    public Mapping(String className, String methodName,String url) {
         this.className = className;
         this.methodName = methodName;
-        this.isPost = isPost;
+        this.isPost = false;
+        this.url=url;
+    }
+    public String getUrl() {
+        return url;
+    }
+    public void setUrl(String url) {
+        this.url = url;
     }
     
 }

@@ -1,14 +1,15 @@
 package org.framework.checker;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.framework.annotation.Post;
 import org.framework.annotation.RequestMapping;
 import org.framework.exceptions.PackageNotFoundException;
 import org.framework.exceptions.RequestMappingException;
-import org.framework.annotation.outil.RequestMethod;
 import org.framework.classSources.ClassFinder;
 
 import jakarta.servlet.ServletContext;
@@ -16,16 +17,26 @@ import jakarta.servlet.http.HttpServletRequest;
 
 
 public class RequestMappingChecker {
-    private Map<String, Mapping> mappingClasses = new HashMap<>();
+    private List< Mapping> mappingClasses = new ArrayList<>();
 
-    public void addClassMapping(Mapping map, String annotationValue) throws RequestMappingException {
-        String normalizedAnnotationValue = normalizeUrl(annotationValue);
+    public void addClassMapping(Mapping map) throws RequestMappingException {
+        String normalizedAnnotationValue = normalizeUrl(map.getUrl());
 
-        if (mappingClasses.containsKey(normalizedAnnotationValue)) {
-            throw new RequestMappingException("Duplicate URL detected for annotation value: " + annotationValue);
+        map.setUrl(normalizedAnnotationValue);
+
+        System.out.println(map.getMethodName());
+        System.err.println(map.getUrl());
+        System.out.println("aaa");
+
+        for (Mapping mapping : mappingClasses) {
+            if (map.getUrl().equals(mapping.getUrl())) {
+                throw new RequestMappingException("Duplicate URL at "+map.getClassName()+" class");
+            }
+            if (map.getMethodName().equals(mapping.getMethodName())) {
+                throw new RequestMappingException("Duplicate method at "+map.getClassName()+" class");
+            }
         }
-
-        this.mappingClasses.put(normalizedAnnotationValue, map);
+        this.mappingClasses.add(map);
     }
 
     boolean hasRequestMapping(Class<?> clazz) {
@@ -37,21 +48,23 @@ public class RequestMappingChecker {
         return false;
     }
     
-    public Map<String, Mapping> getRequestMappingMethods(Class<?> clazz) throws RequestMappingException {
-        Map<String, Mapping> requestMappingMethods = new HashMap<>();
+    public List<Mapping> getRequestMappingMethods(Class<?> clazz) throws RequestMappingException {
+        List< Mapping> requestMappingMethods = new ArrayList<>();
         for (Method method : clazz.getDeclaredMethods()) {
             if (method.isAnnotationPresent(RequestMapping.class)) {
                 RequestMapping requestMapping = method.getAnnotation(RequestMapping.class);
+                Mapping map=new Mapping(clazz.getName(),method.getName(),requestMapping.value());
                 
-                Mapping map=new Mapping(clazz.getName(),method.getName(), requestMapping.method());
+                if (method.isAnnotationPresent(Post.class)) {
+                    map.setPost(true);
+                }
                 
-                requestMappingMethods.put(requestMapping.value(), map);
+                requestMappingMethods.add(map);
             }
         }
         return requestMappingMethods;
     }
 
-    
     public void getAllMethodMapping(ServletContext context) throws Exception {
         String packageName = context.getInitParameter("Package");
 
@@ -59,29 +72,30 @@ public class RequestMappingChecker {
 
         for (Class<?> clazz : allClasses) {
             if (hasRequestMapping(clazz)) {
-                Map<String, Mapping> mappings = getRequestMappingMethods(clazz);
+                List< Mapping> mappings = getRequestMappingMethods(clazz);
 
-                for (Map.Entry<String, Mapping> entry : mappings.entrySet()) {
-                    addClassMapping(entry.getValue(), entry.getKey());
+                for (Mapping map : mappings) {
+                    addClassMapping(map);
                 }
             }
         }
-
     }
 
-    public Map<String, Mapping> getMappingClasses() {
+    public List< Mapping> getMappingClasses() {
         return mappingClasses;
     }
 
     public Mapping getMethodByURL(String url,HttpServletRequest request) throws RequestMappingException
      {
         String normalizedUrl = normalizeUrl(url);
-        Mapping map=mappingClasses.getOrDefault(normalizedUrl, null);
-        
-        if(!map.getVerbe().name().equalsIgnoreCase(request.getMethod())){
-            throw new RequestMappingException("Supported HTTP method for this URL is: " + map.getVerbe().name());
+        Mapping map=null;
+
+        for (Mapping mapping : mappingClasses) {
+            if (mapping.getUrl().equals(normalizedUrl)) {
+                map=mapping;
+            }
         }
-        
+    
         return map;
     }
 

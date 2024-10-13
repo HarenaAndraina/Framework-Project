@@ -42,13 +42,13 @@ if (Test-Path $tempDir -PathType Container) {
 # Créer un dossier temporaire pour les fichiers .java needed tto change into temperary direc
 $tempJavaDir = Join-Path -Path $env:TEMP -ChildPath "tempJavaSource"
 
-if (-Not (Test-Path $tempJavaDir)) {
+if (Test-Path $tempJavaDir) {
+    Remove-Item -Path $tempJavaDir -Recurse -Force
     New-Item -Path $tempJavaDir -ItemType Directory | Out-Null
 }
 else {
     # Nettoyer le dossier temporaire s'il existe déjà
-    Remove-Item -Path $tempJavaDir -Recurse -Force
-    New-Item -Path $tempDir -ItemType Directory | Out-Null
+    New-Item -Path $tempJavaDir -ItemType Directory | Out-Null
 }
 
 # Compilation des fichiers .java vers le répertoire temporaire
@@ -149,7 +149,7 @@ Copy-Item -Path $webFolderPath\* -Destination $env:temp -Force
 $javaFilesPath = Join-Path -Path $projectFolder -ChildPath "src"  # Chemin des fichiers .java
 
 # Créer un dossier temporaire pour les fichiers .java needed to change into temperary direc
-$tempJavaSource1 = Join-Path -Path $javaFilesPath -ChildPath "tempJavaSource1"
+$tempJavaSource1 = Join-Path -Path $env:TEMP -ChildPath "tempJavaSource1"
 
 if (Test-Path $tempJavaSource1) {
     Remove-Item -Path $tempJavaSource1 -Recurse -Force
