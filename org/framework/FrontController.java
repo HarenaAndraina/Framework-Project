@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.framework.annotation.RequestMapping;
-import org.framework.annotation.RequestMethod;
 import org.framework.checker.Mapping;
 import org.framework.checker.RequestMappingChecker;
 import org.framework.checker.RestAPIChecker;
@@ -30,21 +29,27 @@ public class FrontController extends HttpServlet {
     @Override
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
+        System.out.println("Initialisation de FrontController");
 
-        // Récupérer l'objet ServletContext
-        ServletContext context = config.getServletContext();
-
-        // Récupérer la valeur du paramètre basePackage du context
-        this.checker = new RequestMappingChecker();
-
-        this.checkerRestAPI = new RestAPIChecker();
-        
         try {
-            checker.getAllMethodMapping(context);
+            ServletContext context = config.getServletContext();
+            String packageName = context.getInitParameter("Package");
+            System.out.println("Package à scanner: " + packageName);
 
+            this.checker = new RequestMappingChecker();
+            this.checkerRestAPI = new RestAPIChecker();
+
+            System.out.println("Début du scan des mappings RequestMapping");
+            checker.getAllMethodMapping(context);
+            System.out.println("Scan des mappings RequestMapping terminé");
+
+            System.out.println("Début du scan des mappings RestAPI");
             checkerRestAPI.getAllMethodMapping(context);
-        } catch (Exception e) {
-            this.error = e.getMessage();
+            System.out.println("Scan des mappings RestAPI terminé");
+
+        } catch (Throwable e) {
+            System.out.println("Erreur lors de l'initialisation: " + e.getMessage());
+            this.error = e.toString();
         }
     }
 
@@ -59,29 +64,29 @@ public class FrontController extends HttpServlet {
             if (this.error == null) {
 
                 try {
-                    Mapping mapping = checker.getMethodByURL(relativeUrl,request);
+                    Mapping mapping = checker.getMethodByURL(relativeUrl, request);
 
                     Mapping mapping2 = checkerRestAPI.getMethodByURL(relativeUrl);
 
-                    ViewScan.viewScanner(request, response,requestURL,mapping, mapping2);
+                    ViewScan.viewScanner(request, response, requestURL, mapping, mapping2);
                 } catch (Exception e) {
                     response.setContentType("text/html;charset=UTF-8");
                     PrintWriter out = response.getWriter();
-                    out.println(e.getMessage());
-                    out.close();        
+                    out.println(e.toString());
+                    out.close();
                 }
 
             } else {
                 response.setContentType("text/html;charset=UTF-8");
                 PrintWriter out = response.getWriter();
-                out.println("Error initializing RequestMapping: " + error);
+                out.println("Error initializing: " + error);
                 out.close();
             }
 
         } catch (Exception e) {
             response.setContentType("text/html;charset=UTF-8");
             PrintWriter out = response.getWriter();
-            out.println(e.getMessage());
+            out.println(e.toString());
             out.close();
         }
     }

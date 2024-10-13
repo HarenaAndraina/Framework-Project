@@ -1,24 +1,20 @@
 package org.framework.exceptions;
 
-/**
- * ViewException
- */
-public class ViewException extends Exception {
-    private static final int ERROR_CODE = 404;
-    
-    public ViewException(){
+public class MethodVerbException  extends Exception{
+    private static final int ERROR_CODE = 500;
+
+    public MethodVerbException(){
         super();
     }
-    
-    public ViewException(String message){
+    public MethodVerbException(String message){
         super(message);
     }
+
     @Override
     public String toString() {
-        return "ViewException{" +
+        return "MethodVerbException{" +
                 "errorCode=" + ERROR_CODE +
                 ", message=" + getMessage() +
                 '}';
     }
-
 }
