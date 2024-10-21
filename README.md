@@ -32,7 +32,7 @@
 
     <context-param>
         <param-name>Package</param-name>
-        <param-value># add your package directory</param-value>
+        <param-value>#add your package directory#</param-value>
     </context-param>
     </web-app>
 
@@ -49,11 +49,12 @@
 
 * The `RedirectView` class (located in `org.framework.view.RedirectView`) can also retrieve methods that just need to redirect to a .jsp file.
 
-* The argument of the method using the annotation can be only `no parameter`,`String` and you can add class that you create
+* The `@Param` annotation (located in `org.framework.annotation.Param`) is used to map the method's argument to the corresponding values from the view.
 
-* The `@Param` (located in `org.framework.annotation.Param`) is annotation argument of the method that you can add in the method two
+in this example:
+    -The ``@Param("empka")`` annotation binds the Employe class instance to the form fields in the view.
+    -The form fields (empka.pseudo and empka.password) are mapped to the properties of the Employe class (pseudo and password). These values are then accessed in the controller and displayed or processed as needed.
 
-exemple use:
     1- the Employe Class 
     public class Employe {
         private String pseudo;
@@ -100,13 +101,17 @@ exemple use:
         <input type="submit" value="Valider">
     </form>
 
-* And the same if you do not use the annotation, but the name of the parameter should take the place of "empka".
 
-* The `@FieldParamName`(lcoated at `org.framework.annotation.FieldParamName` )  annotation can be added to the class field that will be mapped with the name of the input. If you do not use it, the field name will be taken as the same as the name of the input. 
+* The `@FieldParamName`(located at `org.framework.annotation.FieldParamName` )  annotation can be added to the class field that will be mapped with the name of the input. If you do not use it, the field name will be taken as the same as the name of the input. 
 
-* objectif  body response type json
- creation restapi association url
-frontservlet: traitement methode verification annotation si existe: raha tsy mireturn model and view dia avadika json fotsin mampiasa lib gson,
-raha mireturn model and view alaina le izy de avadika json aveo
-aveo tsy mampiasa dispatchforward fa atao getwriter fotsin dia printjson dia ovaina le type content type json 
+* The `@RestAPI` annotation (located in `org.framework.annotation.RestAPI`) can be applied to a method based on a URL to convert its return value into JSON and display it directly.
+
+
+
+
+**RULES**
+* Always use the ``@Param`` annotation to map data to an object in your controller.
+* Do not use duplicate ``URLs`` names and ``methods`` names, even if the methods have different parameters.
+
+
 @HarenaAndraina
