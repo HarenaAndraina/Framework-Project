@@ -23,10 +23,7 @@ public class RestAPIChecker {
         String normalizeAnnotationValue=normalizeUrl(map.getUrl());
     
         map.setUrl(normalizeAnnotationValue);
-        System.out.println(map.getMethodName());
-        System.out.println(map.getUrl());
-        System.out.println("aaa");
-
+        
         for (Mapping mapping : mappingClasses) {
             if (map.getUrl().equals(mapping.getUrl())) {
                 throw new RequestMappingException("Duplicate URL at "+map.getClassName()+" class");

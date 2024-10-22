@@ -1,5 +1,8 @@
 package org.framework.viewScan;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.Field;
@@ -13,6 +16,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.framework.annotation.FieldParamName;
+import org.framework.annotation.FileParamName;
+import org.framework.File.FileParam;
 import org.framework.annotation.Param;
 import org.framework.checker.Mapping;
 import org.framework.checker.ParamChecker;
@@ -66,8 +71,8 @@ public class ViewScan {
         if (mapRestAPI != null) {
             if (mapRestAPI.isPost() && request.getMethod().equalsIgnoreCase("GET")) {
                 throw new RequestMappingException("tokony post de get");
-            } 
-             if (!mapRestAPI.isPost() && request.getMethod().equalsIgnoreCase("POST")) {
+            }
+            if (!mapRestAPI.isPost() && request.getMethod().equalsIgnoreCase("POST")) {
                 throw new RequestMappingException("tokony get de lasa post");
             }
             processMapping(request, response, requestURL, mapRestAPI, true);
@@ -75,11 +80,11 @@ public class ViewScan {
         if (map != null) {
             if (map.isPost() && request.getMethod().equalsIgnoreCase("GET")) {
                 throw new RequestMappingException("tokony post de get");
-            } 
-             if (!map.isPost() && request.getMethod().equalsIgnoreCase("POST")) {
+            }
+            if (!map.isPost() && request.getMethod().equalsIgnoreCase("POST")) {
                 throw new RequestMappingException("tokony get de lasa post");
             }
-            processMapping(request, response, requestURL, map, false);    
+            processMapping(request, response, requestURL, map, false);
         }
 
     }
@@ -229,6 +234,7 @@ public class ViewScan {
                 Object[] args = new Object[parameterCount];
                 ParamChecker checkerAnnotationParam = new ParamChecker();
                 int idParamSession = -1;
+                int idParamFile = -1;
 
                 for (int i = 0; i < parameterTypes.length; i++) {
                     if (parameters[i].getType().equals(CustomSession.class)) {
@@ -236,6 +242,14 @@ public class ViewScan {
                         CustomSession customSession = getCustomSession();
                         args[i] = customSession;
                         idParamSession = i;
+                    }
+                    if (parameters[i].isAnnotationPresent(FileParamName.class)) {
+                        FileParamName paramFile = parameters[i].getAnnotation(FileParamName.class);
+                        FileParam fileParam = new FileParam(paramFile.value());
+
+                        fileParam.add(request);
+                        args[i] = fileParam;
+                        idParamFile = i;
                     }
                 }
 
@@ -246,9 +260,9 @@ public class ViewScan {
                 }
 
                 List<ParamWithType> listParam = checkerAnnotationParam.getParamList();
-
                 for (int i = 0; i < args.length; i++) {
-                    if (i != idParamSession) {
+
+                    if (i != idParamSession && i != idParamFile) {
                         String paramName = listParam.get(i).getParam().value();
                         if (!listParam.get(i).getType().equals(String.class)) {
                             Class<?> paramClass = listParam.get(i).getType();

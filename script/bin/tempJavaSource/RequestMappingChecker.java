@@ -24,10 +24,6 @@ public class RequestMappingChecker {
 
         map.setUrl(normalizedAnnotationValue);
 
-        System.out.println(map.getMethodName());
-        System.err.println(map.getUrl());
-        System.out.println("aaa");
-
         for (Mapping mapping : mappingClasses) {
             if (map.getUrl().equals(mapping.getUrl())) {
                 throw new RequestMappingException("Duplicate URL at "+map.getClassName()+" class");
