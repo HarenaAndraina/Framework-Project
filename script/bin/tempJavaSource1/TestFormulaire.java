@@ -38,7 +38,7 @@ public class TestFormulaire {
 
     @Post
     @RequestMapping("/login.do")
-    public ModelView getForm(@Param("empka")Employe emp,@FileParamName("file") FileParam file) {
+    public ModelView getForm(@Param("empka")Employe emp,@FileParamName("bbb") FileParam file) {
         ModelView model = new ModelView("bonjour.jsp");
 
         model.addObject("pseudo", emp.getPseudo());
@@ -46,7 +46,7 @@ public class TestFormulaire {
         model.addObject("file",file.getFileName("file"));
 
         try {
-            File uploadedFile = file.getFile("file");
+            File uploadedFile = file.getFile();
             
             // Read the content of the file
             StringBuilder fileContent = new StringBuilder();

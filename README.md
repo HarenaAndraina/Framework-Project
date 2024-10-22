@@ -104,8 +104,11 @@ in this example:
 
 * The `@FieldParamName`(located at `org.framework.annotation.FieldParamName` )  annotation can be added to the class field that will be mapped with the name of the input. If you do not use it, the field name will be taken as the same as the name of the input. 
 
+* The `CustomSession` class (located in `org.framework.session`) is responsible for adding and deleting sessions.
+
 * The `@RestAPI` annotation (located in `org.framework.annotation.RestAPI`) can be applied to a method based on a URL to convert its return value into JSON and display it directly.
 
+* The `@FileParamName` annotation (located in `org.framework.annotation.FileParamName`) is used to map the input file's name, and the `FileParam` class (located in `org.framework.File`) follows this annotation to retrieve the file within the method.
 
 
 

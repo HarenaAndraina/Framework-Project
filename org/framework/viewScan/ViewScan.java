@@ -245,9 +245,9 @@ public class ViewScan {
                     }
                     if (parameters[i].isAnnotationPresent(FileParamName.class)) {
                         FileParamName paramFile = parameters[i].getAnnotation(FileParamName.class);
-                        FileParam fileParam = new FileParam();
+                        FileParam fileParam = new FileParam(paramFile.value());
 
-                        fileParam.add(request, paramFile.value());
+                        fileParam.add(request);
                         args[i] = fileParam;
                         idParamFile = i;
                     }

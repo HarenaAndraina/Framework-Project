@@ -19,9 +19,20 @@ import java.util.Map;
 
 public class FileParam {
      private Map<String, FileData> files = new HashMap<>();
+     private String keyName;
 
-    public void add(HttpServletRequest request, String paramName) throws Exception {
-        Part filePart = request.getPart(paramName);
+     
+
+    public FileParam(String keyName) throws Exception {
+        if (keyName.isEmpty()) {
+            throw new FileException("parameter name null");
+        }
+        this.keyName = keyName;
+    }
+
+
+    public void add(HttpServletRequest request) throws Exception {
+        Part filePart = request.getPart(this.getKeyName());
 
         if (filePart != null) {
             String fileName = filePart.getSubmittedFileName();
@@ -37,12 +48,12 @@ public class FileParam {
                 byte[] fileContent = readFileContent(filePart);
 
                 // Store the file data in the map
-                files.put(paramName, new FileData(fileName, fileContent, fileSize));
+                files.put(this.getKeyName(), new FileData(fileName, fileContent, fileSize));
             } else {
-                throw new FileException("File is empty for parameter: " + paramName);
+                throw new FileException("File is empty for parameter: " + this.getKeyName());
             }
         } else {
-            throw new FileException("File not found in request for parameter: " + paramName);
+            throw new FileException("File not found in request for parameter: " + this.getKeyName());
         }
     }
 
@@ -53,7 +64,13 @@ public class FileParam {
         }
     }
 
-    public File getFile(String paramName) throws Exception {
+    public File getFile()throws Exception{
+        String key=getKeyName();
+
+        return getFile(key);
+    }
+
+    private File getFile(String paramName) throws Exception {
         FileData fileData = files.get(paramName);
 
         if (fileData == null) {
@@ -102,5 +119,10 @@ public class FileParam {
         public long getFileSize() {
             return fileSize;
         }
+    }
+
+
+    public String getKeyName() {
+        return keyName;
     }
 }

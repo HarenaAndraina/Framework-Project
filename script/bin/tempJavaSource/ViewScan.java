@@ -245,22 +245,11 @@ public class ViewScan {
                     }
                     if (parameters[i].isAnnotationPresent(FileParamName.class)) {
                         FileParamName paramFile = parameters[i].getAnnotation(FileParamName.class);
-                        FileParam fileParam = new FileParam();
+                        FileParam fileParam = new FileParam(paramFile.value());
 
-                        fileParam.add(request, paramFile.value());
+                        fileParam.add(request);
                         args[i] = fileParam;
                         idParamFile = i;
-                        File uploadedFile = fileParam.getFile("file");
-
-                        // Read the content of the file
-                        StringBuilder fileContent = new StringBuilder();
-                        try (BufferedReader br = new BufferedReader(new FileReader(uploadedFile))) {
-                            String line;
-                            while ((line = br.readLine()) != null) {
-                                fileContent.append(line).append("\n"); // Append each line to the StringBuilder
-                            }
-                        }
-                        System.out.println(fileContent.toString());
                     }
                 }
 
