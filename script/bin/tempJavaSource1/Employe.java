@@ -2,15 +2,18 @@ package viewsClasses;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.framework.annotation.validation.Required;
 
 import org.framework.annotation.FieldParamName;
 
 public class Employe {
     private int id;
 
+    @Required
     @FieldParamName("pseud")
     private String pseudo;
 
+    @Required
     @FieldParamName("passwrd")
     private String password;
     

@@ -118,3 +118,8 @@ in this example:
 
 
 @HarenaAndraina
+
+
+controle de valeur: class ajout annotation chaque field capable retourner une erreur dans le cas le champ est invalide
+
+annotation auth avec role no afaka mandray amle fonction

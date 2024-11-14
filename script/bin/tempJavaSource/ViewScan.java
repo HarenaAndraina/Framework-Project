@@ -22,6 +22,7 @@ import org.framework.annotation.Param;
 import org.framework.checker.Mapping;
 import org.framework.checker.ParamChecker;
 import org.framework.checker.RequestMappingChecker;
+import org.framework.checker.Validator;
 import org.framework.checker.ParamChecker.ParamWithType;
 import org.framework.exceptions.InvocationMethodException;
 import org.framework.exceptions.MappingNotFoundException;
@@ -29,6 +30,7 @@ import org.framework.exceptions.ParamException;
 import org.framework.exceptions.RequestMappingException;
 import org.framework.exceptions.ViewException;
 import org.framework.view.RedirectView;
+import org.framework.exceptions.ValidationException;
 
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.http.HttpServletRequest;
@@ -289,7 +291,7 @@ public class ViewScan {
     }
 
     private static void addArgsObject(HttpServletRequest request, Object[] args, int i, String paramName,
-            Class<?> paramClass) throws InvocationMethodException {
+            Class<?> paramClass) throws InvocationMethodException,ValidationException {
         try {
             Object paramObject = paramClass.getDeclaredConstructor().newInstance();
             Field[] fields = paramClass.getDeclaredFields();
@@ -308,8 +310,16 @@ public class ViewScan {
                     }
                 }
             }
-
+                        
+            Map<String, String> validationErrors = Validator.validate(paramObject);
+            if (!validationErrors.isEmpty()) {
+                throw new ValidationException("Validation errors occurred",validationErrors);
+            }
             args[i] = paramObject;
+        } catch (ValidationException ve) {
+            // Rethrow ValidationException without catching it as InvocationMethodException
+            throw ve;
+    
         } catch (Exception e) {
             e.printStackTrace();
             throw new InvocationMethodException("Cannot access the field parameter");

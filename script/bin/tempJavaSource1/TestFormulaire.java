@@ -38,7 +38,7 @@ public class TestFormulaire {
 
     @Post
     @RequestMapping("/login.do")
-    public ModelView getForm(@Param("empka")Employe emp,@FileParamName("bbb") FileParam file) {
+    public ModelView getForm(@Param("empka")Employe emp,@FileParamName("file") FileParam file) {
         ModelView model = new ModelView("bonjour.jsp");
 
         model.addObject("pseudo", emp.getPseudo());
@@ -68,12 +68,19 @@ public class TestFormulaire {
 
     @Post
     @RequestMapping("/login.get")
-    public RedirectView getForm1(@Param("empka") Employe emp, CustomSession sess) {
-
-        sess.add("id", 1);
+    public ModelView getForm1(@Param("empka") Employe emp, CustomSession sess) {
+        /*
+         * sess.add("id", 1);
         sess.add("pseudo",emp.getPseudo());
 
         return new RedirectView("acceuil.jsp");
+         */
+        ModelView model = new ModelView("bonjour.jsp");
+
+        model.addObject("pseudo", emp.getPseudo());
+        model.addObject("password", emp.getPassword());
+        return model;
+        
     }
     @RequestMapping("/tacheAFaire")
     public ModelView getTacheAFaire(CustomSession sess) {
