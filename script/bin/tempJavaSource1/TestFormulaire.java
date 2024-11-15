@@ -68,19 +68,19 @@ public class TestFormulaire {
 
     @Post
     @RequestMapping("/login.get")
-    public ModelView getForm1(@Param("empka") Employe emp, CustomSession sess) {
-        /*
-         * sess.add("id", 1);
+    public RedirectView getForm1(@Param("empka") Employe emp, CustomSession sess) {
+        
+         sess.add("id", 1);
         sess.add("pseudo",emp.getPseudo());
 
         return new RedirectView("acceuil.jsp");
-         */
-        ModelView model = new ModelView("bonjour.jsp");
+         
+        /*ModelView model = new ModelView("bonjour.jsp");
 
         model.addObject("pseudo", emp.getPseudo());
         model.addObject("password", emp.getPassword());
         return model;
-        
+        */
     }
     @RequestMapping("/tacheAFaire")
     public ModelView getTacheAFaire(CustomSession sess) {

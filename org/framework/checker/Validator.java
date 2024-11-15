@@ -3,12 +3,12 @@ package org.framework.checker;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
-import org.framework.annotation.validation.NotNull;
+import org.framework.annotation.validation.Text;
 import org.framework.annotation.validation.Required;
-
 import org.framework.exceptions.RequiredException;
-import org.framework.exceptions.NotNullException;
+import org.framework.exceptions.StringException;
 
 public class Validator {
 
@@ -24,13 +24,11 @@ public class Validator {
                 if (field.isAnnotationPresent(Required.class)) {
                     validateRequired(field, value);
                 }
-
-                // Check for @NotNull
-                if (field.isAnnotationPresent(NotNull.class)) {
-                    validateNotNull(field, value);
+                if (field.isAnnotationPresent(Text.class)) {
+                    validateString(field, value);
                 }
 
-            } catch (RequiredException | NotNullException e) {
+            } catch (RequiredException | StringException e) {
                 // Capture the specific exception message in the errors map
                 errors.put(field.getName(), e.getMessage());
             }
@@ -45,9 +43,17 @@ public class Validator {
         }
     }
 
-    private static void validateNotNull(Field field, Object value) throws NotNullException {
-        if (value == null) {
-            throw new NotNullException(field.getName());
+    private static void validateString(Field field,Object value) throws StringException{
+       if (value == null || !(value instanceof java.lang.String)) {
+            throw new StringException("The " + field.getName() + " must be a string.");
+        }
+
+        Text stringValue = (Text) value;
+
+
+        // Example: Check if the string contains only alphabetic characters
+        if (!Pattern.matches("^[a-zA-Z]+$", (CharSequence) stringValue)) {
+            throw new StringException("The " + field.getName() + " must contain only alphabetic characters.");
         }
     }
 }

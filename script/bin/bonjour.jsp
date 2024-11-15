@@ -9,7 +9,7 @@
     <p>65555555</p>
     <h1>pseudo: <%= request.getAttribute("pseudo") %></h1>
     <h1>password: <%=request.getAttribute("password")  %>  </h1>
-    <h1>fileName: <%=request.getAttribute("file")%> </h1>
+     <h1>fileName: <%=request.getAttribute("file")%> </h1>
     <h1> fileContent:<%=request.getAttribute("fileContent")  %>  </h1>
 </body>
 </html>
