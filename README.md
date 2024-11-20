@@ -110,16 +110,22 @@ in this example:
 
 * The `@FileParamName` annotation (located in `org.framework.annotation.FileParamName`) is used to map the input file's name, and the `FileParam` class (located in `org.framework.File`) follows this annotation to retrieve the file within the method.
 
+* There are annotations you can use to add validation constraints to input fields in the class, such as `@Required` and `@Text`.
+
 
 
 **RULES**
 * Always use the ``@Param`` annotation to map data to an object in your controller.
 * Do not use duplicate ``URLs`` names and ``methods`` names, even if the methods have different parameters.
+        
+* if you want to use the old value, use the ``getAttribute`` method and add the prefix ``old_`` before the attribute name. The same applies for the error message but the prefix `error_`.
+    exemple :
+        input type="text" name="empka.pseud" value="<%= request.getAttribute("old_empka.pseud") != null ? request.getAttribute("old_empka.pseud") : "" %>"
+        
+        <%= request.getAttribute("error_empka.passwrd") != null ? request.getAttribute("error_empka.passwrd") : "" %>
+
+
 
 
 @HarenaAndraina
 
-
-controle de valeur: class ajout annotation chaque field capable retourner une erreur dans le cas le champ est invalide
-
-annotation auth avec role no afaka mandray amle fonction
