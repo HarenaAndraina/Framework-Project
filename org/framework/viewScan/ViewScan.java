@@ -10,6 +10,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
@@ -38,9 +39,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.framework.view.ModelView;
 import org.framework.session.CustomSession;
+import jakarta.servlet.ServletContext;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 /**
  * ModelAndView
@@ -99,7 +100,7 @@ public class ViewScan {
         Object result = null;
 
         try {
-            result = invokingMethod(request, className, methodName);
+            result = invokingMethod(request, response, className, methodName);
         } catch (Exception e) {
             throw e;
         }
@@ -200,7 +201,8 @@ public class ViewScan {
         }
     }
 
-    private static Object invokingMethod(HttpServletRequest request, String className, String methodName)
+    private static Object invokingMethod(HttpServletRequest request, HttpServletResponse response, String className,
+            String methodName)
             throws InvocationMethodException, ParamException {
         Object result = null;
         try {
@@ -262,6 +264,8 @@ public class ViewScan {
                 }
 
                 List<ParamWithType> listParam = checkerAnnotationParam.getParamList();
+                
+
                 for (int i = 0; i < args.length; i++) {
 
                     if (i != idParamSession && i != idParamFile) {
@@ -269,7 +273,7 @@ public class ViewScan {
                         if (!listParam.get(i).getType().equals(String.class)) {
                             Class<?> paramClass = listParam.get(i).getType();
                             try {
-                                addArgsObject(request, args, i, paramName, paramClass);
+                                addArgsObject(request, response, args, i, paramName, paramClass);
                             } catch (InvocationMethodException e) {
                                 throw e;
                             }
@@ -290,36 +294,34 @@ public class ViewScan {
         return result;
     }
 
-    private static void addArgsObject(HttpServletRequest request, Object[] args, int i, String paramName,
-            Class<?> paramClass) throws InvocationMethodException,ValidationException {
+    private static void addArgsObject(HttpServletRequest request, HttpServletResponse response, Object[] args, int i,
+            String paramName,Class<?> paramClass)
+            throws InvocationMethodException, ValidationException {
         try {
             Object paramObject = paramClass.getDeclaredConstructor().newInstance();
             Field[] fields = paramClass.getDeclaredFields();
-            for (Field field2 : fields) {
-                field2.setAccessible(true);
-                if (field2.isAnnotationPresent(FieldParamName.class)) {
-                    FieldParamName fieldParamName = field2.getAnnotation(FieldParamName.class);
+            Validator valide=new Validator();
+            valide.validate(fields, request, paramObject, paramName);
+            Map<String, String> validationErrors = valide.getErrors();
 
-                    String fieldName = fieldParamName.value();
-                    String fullParamName = paramName + "." + fieldName;
-                    String paramValue = request.getParameter(fullParamName);
-
-                    if (paramValue != null) {
-                        Object convertedValue = convertToFieldType(field2, paramValue);
-                        field2.set(paramObject, convertedValue);
-                    }
-                }
-            }
-                        
-            Map<String, String> validationErrors = Validator.validate(paramObject);
             if (!validationErrors.isEmpty()) {
-                throw new ValidationException("Validation errors occurred",validationErrors);
+                Map<String,Object> oldValues = valide.getOldValue();
+                for (Map.Entry<String, String> errorEntry : validationErrors.entrySet()) {
+                    String errorKey = errorEntry.getKey(); // Key for the error
+                    String errorMessage = errorEntry.getValue(); // Value of the error message
+                    System.out.println(errorMessage);
+                    // Add the error to the request attributes
+                    request.setAttribute("error_" + errorKey, errorMessage);
+                }
+                for (Map.Entry<String,Object> oldValue : oldValues.entrySet()) {
+                    System.out.println(oldValue.getValue());
+                    request.setAttribute("old_" + oldValue.getKey(), oldValue.getValue());                                                 
+                }
+                RequestDispatcher dispatcher = request.getRequestDispatcher("/"+getPREVURL(request)+".jsp"); // Remplacez par votre
+                                                                                                  // page cible
+                dispatcher.forward(request, response);
             }
             args[i] = paramObject;
-        } catch (ValidationException ve) {
-            // Rethrow ValidationException without catching it as InvocationMethodException
-            throw ve;
-    
         } catch (Exception e) {
             e.printStackTrace();
             throw new InvocationMethodException("Cannot access the field parameter");
@@ -337,26 +339,6 @@ public class ViewScan {
             args[i] = requestParam;
         } else {
             args[i] = null;
-        }
-    }
-
-    private static Object convertToFieldType(Field field, String value) throws Exception {
-        Class<?> fieldType = field.getType();
-
-        if (fieldType.equals(int.class) || fieldType.equals(Integer.class)) {
-            return Integer.parseInt(value);
-        } else if (fieldType.equals(long.class) || fieldType.equals(Long.class)) {
-            return Long.parseLong(value);
-        } else if (fieldType.equals(float.class) || fieldType.equals(Float.class)) {
-            return Float.parseFloat(value);
-        } else if (fieldType.equals(double.class) || fieldType.equals(Double.class)) {
-            return Double.parseDouble(value);
-        } else if (fieldType.equals(boolean.class) || fieldType.equals(Boolean.class)) {
-            return Boolean.parseBoolean(value);
-        } else if (fieldType.equals(String.class)) {
-            return value;
-        } else {
-            throw new IllegalArgumentException("Unsupported field type: " + fieldType);
         }
     }
 
@@ -387,5 +369,21 @@ public class ViewScan {
             customSession = new CustomSession();
         }
         return customSession;
+    }
+
+    public static String getPREVURL(HttpServletRequest request) {
+        String referer = request.getHeader("Referer");
+
+        // Vérifier si le referer n'est pas null
+        if (referer != null && !referer.isEmpty()) {
+            // Extraire le dernier segment après le dernier '/'
+            int lastSlashIndex = referer.lastIndexOf("/");
+            if (lastSlashIndex != -1 && lastSlashIndex < referer.length() - 1) {
+                return referer.substring(lastSlashIndex + 1); // Retourne le dernier segment
+            }
+        }
+
+        // Retourner une valeur par défaut ou null si le referer est introuvable
+        return null;
     }
 }
