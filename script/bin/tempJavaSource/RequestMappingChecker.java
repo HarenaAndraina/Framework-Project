@@ -87,6 +87,7 @@ public class RequestMappingChecker {
         Mapping map=null;
 
         for (Mapping mapping : mappingClasses) {
+            
             if (mapping.getUrl().equals(normalizedUrl)) {
                 map=mapping;
             }
