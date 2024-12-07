@@ -73,13 +73,10 @@ public class FrontController extends HttpServlet {
             String requestURL = request.getRequestURI();
             String contextPath = request.getContextPath();  
             String relativeUrl = requestURL.substring(contextPath.length());
-            
-            System.out.println("relative: "+ relativeUrl);
-            
+                        
             if (this.error == null) {
                 try {
                     Mapping mapping = checker.getMethodByURL(relativeUrl, request);
-                    System.out.println(mapping.getMethodName()+" miaraka "+mapping.getUrl());
 
                     Mapping mapping2 = checkerRestAPI.getMethodByURL(relativeUrl);
 
