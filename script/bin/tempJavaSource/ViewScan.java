@@ -37,6 +37,7 @@ import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequestWrapper;
 import org.framework.view.ModelView;
 import org.framework.session.CustomSession;
 import jakarta.servlet.ServletContext;
@@ -44,9 +45,14 @@ import jakarta.servlet.ServletContext;
 import com.google.gson.Gson;
 
 /**
- * ModelAndView
- * //url mitovy controller roa mitovy url tsy misy package tsy misy type de
- * retour
+ * The method invokingMethod uses reflection to dynamically invoke a method from
+ * a controller class.
+ * The methods syncHttpSessionToCustomSession and syncCustomSessionToHttpSession
+ * synchronize data between the HttpSession (from javax.servlet) and the custom
+ * session wrapper (CustomSession).
+ * The addArgsObject method validates input data using a Validator object. If
+ * errors are found, it sets error attributes (error_*) and old values (old_*)
+ * in the request before forwarding to the previous page.
  */
 
 public class ViewScan {
@@ -67,25 +73,30 @@ public class ViewScan {
             Mapping map,
             Mapping mapRestAPI)
             throws Exception {
+
         if (map == null && mapRestAPI == null) {
             throw new MappingNotFoundException("Mapping Not Found");
         }
 
         if (mapRestAPI != null) {
             if (mapRestAPI.isPost() && request.getMethod().equalsIgnoreCase("GET")) {
-                throw new RequestMappingException("tokony post de get");
+                throw new RequestMappingException(
+                        "The HTTP method used is not allowed. Please use POST instead of GET.");
             }
             if (!mapRestAPI.isPost() && request.getMethod().equalsIgnoreCase("POST")) {
-                throw new RequestMappingException("tokony get de lasa post");
+                throw new RequestMappingException(
+                        "The HTTP method used is not allowed. Please use GET instead of POST.");
             }
             processMapping(request, response, requestURL, mapRestAPI, true);
         }
         if (map != null) {
             if (map.isPost() && request.getMethod().equalsIgnoreCase("GET")) {
-                throw new RequestMappingException("tokony post de get");
+                throw new RequestMappingException(
+                        "The HTTP method used is not allowed. Please use POST instead of GET");
             }
             if (!map.isPost() && request.getMethod().equalsIgnoreCase("POST")) {
-                throw new RequestMappingException("tokony get de lasa post");
+                throw new RequestMappingException(
+                        "The HTTP method used is not allowed. Please use GET instead of POST");
             }
             processMapping(request, response, requestURL, map, false);
         }
@@ -97,6 +108,7 @@ public class ViewScan {
             boolean isRestAPI) throws Exception {
         String className = map.getClassName();
         String methodName = map.getMethodName();
+        System.out.println("methodName: " + methodName);
         Object result = null;
 
         try {
@@ -138,9 +150,9 @@ public class ViewScan {
 
             for (String key : data.keySet()) {
                 Object value = data.get(key);
-
                 request.setAttribute(key, value);
             }
+            System.out.println("atooo2");
 
             RequestDispatcher dispatcher = null;
             dispatcher = request.getRequestDispatcher(modelView.getUrl());
@@ -148,8 +160,11 @@ public class ViewScan {
         } else if (result instanceof RedirectView) {
             RedirectView redirectView = (RedirectView) result;
 
+            System.out.println("atooo3");
+
             RequestDispatcher dispatcher = null;
             dispatcher = request.getRequestDispatcher(redirectView.getUrl());
+            System.out.println(redirectView.getUrl());
             dispatcher.forward(request, response);
         } else {
             throw new ViewException("Unsupported return type for Web response");
@@ -204,6 +219,7 @@ public class ViewScan {
     private static Object invokingMethod(HttpServletRequest request, HttpServletResponse response, String className,
             String methodName)
             throws InvocationMethodException, ParamException {
+        System.out.println("method invoked : " + methodName);
         Object result = null;
         try {
             Class<?> clazz = Class.forName(className);
@@ -264,7 +280,6 @@ public class ViewScan {
                 }
 
                 List<ParamWithType> listParam = checkerAnnotationParam.getParamList();
-                
 
                 for (int i = 0; i < args.length; i++) {
 
@@ -295,17 +310,18 @@ public class ViewScan {
     }
 
     private static void addArgsObject(HttpServletRequest request, HttpServletResponse response, Object[] args, int i,
-            String paramName,Class<?> paramClass)
+            String paramName, Class<?> paramClass)
             throws InvocationMethodException, ValidationException {
         try {
             Object paramObject = paramClass.getDeclaredConstructor().newInstance();
             Field[] fields = paramClass.getDeclaredFields();
-            Validator valide=new Validator();
+            Validator valide = new Validator();
             valide.validate(fields, request, paramObject, paramName);
             Map<String, String> validationErrors = valide.getErrors();
 
             if (!validationErrors.isEmpty()) {
-                Map<String,Object> oldValues = valide.getOldValue();
+                Map<String, Object> oldValues = valide.getOldValue();
+
                 for (Map.Entry<String, String> errorEntry : validationErrors.entrySet()) {
                     String errorKey = errorEntry.getKey(); // Key for the error
                     String errorMessage = errorEntry.getValue(); // Value of the error message
@@ -313,13 +329,20 @@ public class ViewScan {
                     // Add the error to the request attributes
                     request.setAttribute("error_" + errorKey, errorMessage);
                 }
-                for (Map.Entry<String,Object> oldValue : oldValues.entrySet()) {
+                for (Map.Entry<String, Object> oldValue : oldValues.entrySet()) {
                     System.out.println(oldValue.getValue());
-                    request.setAttribute("old_" + oldValue.getKey(), oldValue.getValue());                                                 
+                    request.setAttribute("old_" + oldValue.getKey(), oldValue.getValue());
                 }
-                RequestDispatcher dispatcher = request.getRequestDispatcher("/"+getPREVURL(request)+".jsp"); // Remplacez par votre
-                                                                                                  // page cible
-                dispatcher.forward(request, response);
+
+                HttpServletRequest modifiedRequest = new HttpServletRequestWrapper(request) {
+                    @Override
+                    public String getMethod() {
+                        return "GET"; // Override the method to GET
+                    }
+                };
+            
+                RequestDispatcher dispatcher = modifiedRequest.getRequestDispatcher(getPREVURL(request));
+                dispatcher.forward(modifiedRequest, response);
             }
             args[i] = paramObject;
         } catch (Exception e) {
@@ -386,4 +409,5 @@ public class ViewScan {
         // Retourner une valeur par défaut ou null si le referer est introuvable
         return null;
     }
+
 }

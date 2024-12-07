@@ -28,6 +28,12 @@ import jakarta.servlet.annotation.MultipartConfig;
     maxRequestSize = 1024 * 1024 * 15    // 15 MB
 )
 
+/*
+ * During servlet initialization (init method), it scans a specified package for annotated methods (@RequestMapping) and RestAPI endpoints.
+ * Matches incoming URLs to mappings and calls the appropriate handler methods.
+ * If a request processing error occurs, it provides a user-friendly response with localized messages.
+ */
+
 public class FrontController extends HttpServlet {
     private RequestMappingChecker checker;
     private RestAPIChecker checkerRestAPI;
@@ -65,13 +71,15 @@ public class FrontController extends HttpServlet {
 
         try {
             String requestURL = request.getRequestURI();
-            String contextPath = request.getContextPath();
+            String contextPath = request.getContextPath();  
             String relativeUrl = requestURL.substring(contextPath.length());
-
+            
+            System.out.println("relative: "+ relativeUrl);
+            
             if (this.error == null) {
-
                 try {
                     Mapping mapping = checker.getMethodByURL(relativeUrl, request);
+                    System.out.println(mapping.getMethodName()+" miaraka "+mapping.getUrl());
 
                     Mapping mapping2 = checkerRestAPI.getMethodByURL(relativeUrl);
 
@@ -109,5 +117,7 @@ public class FrontController extends HttpServlet {
             throws ServletException, IOException {
         processRequest(request, response);
     }
+    
+   
 
 }

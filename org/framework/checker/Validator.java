@@ -57,8 +57,6 @@ public class Validator {
 
     }
 
-    
-
     private  String getFieldParamName(Field field) {
         if (field.isAnnotationPresent(FieldParamName.class)) {
             FieldParamName annotation = field.getAnnotation(FieldParamName.class);

@@ -1,11 +1,11 @@
 # Framework-Project
 
-**Directory stuctures and how to use**
+**Directory stuctures**
 * src/
     add all your java file
 
 * lib/
-    add the project.jar
+    add the project.jar automatically by the script
 
 * views/
     all your jsp file
@@ -13,31 +13,31 @@
 * web.xml
     the web.xml file should follow this below:
 
-    <?xml version="1.0" encoding="UTF-8"?>
-    <web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
-            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee
-                                http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
-            version="4.0">
-    <servlet>
-    <servlet-name>FrontController</servlet-name>
-    <servlet-class>org.framework.FrontController</servlet-class>
-    </servlet>
-
-    <!-- Mapping des URLs pour le FrontController -->
-    <servlet-mapping>
+        <?xml version="1.0" encoding="UTF-8"?>
+        <web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee
+                                    http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
+                version="4.0">
+        <servlet>
         <servlet-name>FrontController</servlet-name>
-        <url-pattern>/</url-pattern>
-    </servlet-mapping>
+        <servlet-class>org.framework.FrontController</servlet-class>
+        </servlet>
 
-    <context-param>
-        <param-name>Package</param-name>
-        <param-value>#add your package directory#</param-value>
-    </context-param>
-    </web-app>
+        <!-- Mapping des URLs pour le FrontController -->
+        <servlet-mapping>
+            <servlet-name>FrontController</servlet-name>
+            <url-pattern>/</url-pattern>
+        </servlet-mapping>
+
+        <context-param>
+            <param-name>Package</param-name>
+            <param-value>#add your package directory#</param-value>
+        </context-param>
+        </web-app>
 
 **Current functionality**
-* The `FrontController` class (located in `org.framework.FrontController`) captures the user's requested URL and displayes it in the browser. It also shows the details of the associated controller for that URL.
+* The `FrontController` class (located in `org.framework.FrontController`) captures the user's requested URL.
 
 * The `@Controller` annotation (located in `org.framework.annotation.Controller`) is used to annotate all classes that the developer wants to be scanned as a controller.
 
@@ -123,9 +123,5 @@ in this example:
         input type="text" name="empka.pseud" value="<%= request.getAttribute("old_empka.pseud") != null ? request.getAttribute("old_empka.pseud") : "" %>"
         
         <%= request.getAttribute("error_empka.passwrd") != null ? request.getAttribute("error_empka.passwrd") : "" %>
-
-
-
-
 @HarenaAndraina
 
