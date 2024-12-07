@@ -108,7 +108,6 @@ public class ViewScan {
             boolean isRestAPI) throws Exception {
         String className = map.getClassName();
         String methodName = map.getMethodName();
-        System.out.println("methodName: " + methodName);
         Object result = null;
 
         try {
@@ -152,7 +151,6 @@ public class ViewScan {
                 Object value = data.get(key);
                 request.setAttribute(key, value);
             }
-            System.out.println("atooo2");
 
             RequestDispatcher dispatcher = null;
             dispatcher = request.getRequestDispatcher(modelView.getUrl());
@@ -160,7 +158,6 @@ public class ViewScan {
         } else if (result instanceof RedirectView) {
             RedirectView redirectView = (RedirectView) result;
 
-            System.out.println("atooo3");
 
             RequestDispatcher dispatcher = null;
             dispatcher = request.getRequestDispatcher(redirectView.getUrl());
