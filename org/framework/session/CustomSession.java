@@ -34,4 +34,9 @@ public class CustomSession {
     public Map<String, Object> getSessionList() {
         return sessionList;
     }
+
+    public void setSessionList(Map<String, Object> sessionList) {
+        this.sessionList = sessionList;
+    }
+   
 }

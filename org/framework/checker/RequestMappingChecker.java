@@ -8,6 +8,8 @@ import java.util.Map;
 
 import org.framework.annotation.Post;
 import org.framework.annotation.RequestMapping;
+import org.framework.annotation.security.Auth;
+import org.framework.annotation.security.IsGranted;
 import org.framework.exceptions.PackageNotFoundException;
 import org.framework.exceptions.RequestMappingException;
 import org.framework.classSources.ClassFinder;
@@ -55,6 +57,14 @@ public class RequestMappingChecker {
                     map.setPost(true);
                 }
                 
+                if (method.isAnnotationPresent(Auth.class)) {
+                    map.setAuth(true);                
+                }
+                
+                if (method.isAnnotationPresent(IsGranted.class)) {
+                    IsGranted grantValue=method.getAnnotation(IsGranted.class);
+                    map.setGranted(grantValue.value());
+                }
                 requestMappingMethods.add(map);
             }
         }
@@ -82,7 +92,7 @@ public class RequestMappingChecker {
     }
 
     public Mapping getMethodByURL(String url,HttpServletRequest request) throws RequestMappingException
-     {
+    {
         String normalizedUrl = normalizeUrl(url);
         Mapping map=null;
 

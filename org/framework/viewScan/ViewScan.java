@@ -25,6 +25,7 @@ import org.framework.checker.ParamChecker;
 import org.framework.checker.RequestMappingChecker;
 import org.framework.checker.Validator;
 import org.framework.checker.ParamChecker.ParamWithType;
+import org.framework.exceptions.AuthConstraintException;
 import org.framework.exceptions.InvocationMethodException;
 import org.framework.exceptions.MappingNotFoundException;
 import org.framework.exceptions.ParamException;
@@ -87,6 +88,15 @@ public class ViewScan {
                 throw new RequestMappingException(
                         "The HTTP method used is not allowed. Please use GET instead of POST.");
             }
+
+            if (customSession == null && mapRestAPI.isAuth()) {
+                throw new AuthConstraintException("Controller need to be authentified");
+            }
+
+            if () {
+                
+            }
+
             processMapping(request, response, requestURL, mapRestAPI, true);
         }
         if (map != null) {
@@ -98,6 +108,11 @@ public class ViewScan {
                 throw new RequestMappingException(
                         "The HTTP method used is not allowed. Please use GET instead of POST");
             }
+
+            if (customSession == null && map.isAuth()) {
+                throw new AuthConstraintException("Controller need to be authentified");
+            }
+
             processMapping(request, response, requestURL, map, false);
         }
 
@@ -157,7 +172,6 @@ public class ViewScan {
             dispatcher.forward(request, response);
         } else if (result instanceof RedirectView) {
             RedirectView redirectView = (RedirectView) result;
-
 
             RequestDispatcher dispatcher = null;
             dispatcher = request.getRequestDispatcher(redirectView.getUrl());
@@ -337,7 +351,7 @@ public class ViewScan {
                         return "GET"; // Override the method to GET
                     }
                 };
-            
+
                 RequestDispatcher dispatcher = modifiedRequest.getRequestDispatcher(getPREVURL(request));
                 dispatcher.forward(modifiedRequest, response);
             }

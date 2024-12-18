@@ -125,3 +125,12 @@ in this example:
         <%= request.getAttribute("error_empka.passwrd") != null ? request.getAttribute("error_empka.passwrd") : "" %>
 @HarenaAndraina
 
+misy method hoe tsy maintsy authentifier vo afaka manao appel anle 
+session no hiverifier na anle 
+public,authentifier,role specifique
+
+
+annotation auth,security
+
+si existe auth il faut qu'il y a une customsession
+si security existe prendre le nom ensuite verifie si ça correspont vraiment dans la session et dans la map du controller
