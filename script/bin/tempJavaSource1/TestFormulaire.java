@@ -10,6 +10,9 @@ import org.framework.annotation.FileParamName;
 import org.framework.annotation.Get;
 import org.framework.annotation.RequestMapping;
 import org.framework.annotation.RestAPI;
+import org.framework.annotation.security.Auth;
+import org.framework.annotation.security.GrantedFor;
+import org.framework.annotation.security.IsGranted;
 import org.framework.view.ModelView;
 import org.framework.view.RedirectView;
 import org.framework.viewScan.ViewScan;
@@ -68,9 +71,9 @@ public class TestFormulaire {
 
     @Post
     @RequestMapping("/login.get")
-    public RedirectView getForm1(@Param("empka") Employe emp, CustomSession sess) {
+    public RedirectView getForm1(@Param("empka") Employe emp, @GrantedFor("admin") CustomSession sess) {
         
-         sess.add("id", 1);
+        sess.add("id", 1);
         sess.add("pseudo",emp.getPseudo());
 
         return new RedirectView("acceuil.jsp");
@@ -83,6 +86,7 @@ public class TestFormulaire {
         */
     }
     
+    @IsGranted("admin")
     @RequestMapping("/tacheAFaire")
     public ModelView getTacheAFaire(CustomSession sess) {
         Object idEmp = sess.get("id");
