@@ -6,7 +6,8 @@ public class Mapping {
     private String url;
     private boolean isPost;
     private boolean isAuth;
-    private String granted;
+    static String grantedValue;
+    private boolean grantedSet;
     
 
     public String getClassName() {
@@ -37,7 +38,7 @@ public class Mapping {
         this.methodName = methodName;
         this.isPost = false;
         this.isAuth=false;
-        this.granted=null;
+        this.grantedSet=false;
         this.url=url;
     }
     
@@ -54,10 +55,16 @@ public class Mapping {
         this.isAuth = isAuth;
     }
     public String getGranted() {
-        return granted;
+        return grantedValue;
     }
     public void setGranted(String granted) {
-        this.granted = granted;
+        grantedValue = granted;
+    }
+    public boolean isGrantedSet() {
+        return grantedSet;
+    }
+    public void setGrantedSet(boolean grantedSet) {
+        this.grantedSet = grantedSet;
     }
     
 }

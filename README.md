@@ -112,6 +112,9 @@ in this example:
 
 * There are annotations you can use to add validation constraints to input fields in the class, such as `@Required` and `@Text`.
 
+* The `@Auth` annotation (located in `org.framework.annotation.security`) is use to if the user is authenticated that need have the required permissions to the method 
+
+* When the ``@IsGranted``(located in `org.framework.annotation.security.IsGranted`) annotation is used for a specific user role that can access certain methods, the ``@GrantedFor`` (located in `org.framework.annotation.security.GrantedFor`) annotation must also be used in the session parameter. If the role specified in the @IsGranted annotation matches the one in the @GrantedFor annotation, the user is allowed to navigate to the URL.
 
 
 **RULES**
@@ -124,13 +127,3 @@ in this example:
         
         <%= request.getAttribute("error_empka.passwrd") != null ? request.getAttribute("error_empka.passwrd") : "" %>
 @HarenaAndraina
-
-misy method hoe tsy maintsy authentifier vo afaka manao appel anle 
-session no hiverifier na anle 
-public,authentifier,role specifique
-
-
-annotation auth,security
-
-si existe auth il faut qu'il y a une customsession
-si security existe prendre le nom ensuite verifie si ça correspont vraiment dans la session et dans la map du controller

@@ -5,7 +5,6 @@ import java.util.Map;
 
 public class CustomSession {
     private Map<String, Object> sessionList = new HashMap<>();
-
     public void add(String key, Object value) {
         sessionList.put(key, value);
     }
@@ -38,5 +37,7 @@ public class CustomSession {
     public void setSessionList(Map<String, Object> sessionList) {
         this.sessionList = sessionList;
     }
-   
+
+
+    
 }

@@ -64,6 +64,9 @@ public class RequestMappingChecker {
                 if (method.isAnnotationPresent(IsGranted.class)) {
                     IsGranted grantValue=method.getAnnotation(IsGranted.class);
                     map.setGranted(grantValue.value());
+                    map.setGrantedSet(true);
+                    
+                    System.out.println("changer grantedvalue:"+ map.getGranted());
                 }
                 requestMappingMethods.add(map);
             }

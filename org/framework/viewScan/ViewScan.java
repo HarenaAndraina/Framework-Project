@@ -20,12 +20,15 @@ import org.framework.annotation.FieldParamName;
 import org.framework.annotation.FileParamName;
 import org.framework.File.FileParam;
 import org.framework.annotation.Param;
+import org.framework.annotation.security.GrantedFor;
 import org.framework.checker.Mapping;
 import org.framework.checker.ParamChecker;
 import org.framework.checker.RequestMappingChecker;
 import org.framework.checker.Validator;
 import org.framework.checker.ParamChecker.ParamWithType;
 import org.framework.exceptions.AuthConstraintException;
+import org.framework.exceptions.GrantConstraintException;
+import org.framework.exceptions.GrantedNotEqualException;
 import org.framework.exceptions.InvocationMethodException;
 import org.framework.exceptions.MappingNotFoundException;
 import org.framework.exceptions.ParamException;
@@ -58,6 +61,7 @@ import com.google.gson.Gson;
 
 public class ViewScan {
     private static CustomSession customSession;
+    private static String grantValueFor = "";
 
     public static String getJspByURL(String url) {
         // Split the normalized URL by '/'
@@ -90,11 +94,19 @@ public class ViewScan {
             }
 
             if (customSession == null && mapRestAPI.isAuth()) {
-                throw new AuthConstraintException("Controller need to be authentified");
+                throw new AuthConstraintException("Unauthorized: Controller need to be authentified");
             }
+            
+            if (mapRestAPI.isGrantedSet()) {
+                if (grantValueFor == null && !mapRestAPI.getGranted().isEmpty()) {
+                    throw new GrantConstraintException(
+                            "Access denied: You must add the GrantFor annotation to the CustomSession parameter of the method.");
+                }
 
-            if () {
-                
+                if (!grantValueFor.equals(mapRestAPI.getGranted())) {
+                    throw new GrantedNotEqualException(
+                            "Access denied: The role of grantedFor does not match the role in the isGranted annotation.");
+                }
             }
 
             processMapping(request, response, requestURL, mapRestAPI, true);
@@ -110,7 +122,20 @@ public class ViewScan {
             }
 
             if (customSession == null && map.isAuth()) {
-                throw new AuthConstraintException("Controller need to be authentified");
+                throw new AuthConstraintException(" Unauthorized:Controller need to be authentified");
+            }
+
+            if (map.isGrantedSet()) {
+                System.out.println("atoooo");
+                if (grantValueFor.isBlank()) {
+                    throw new GrantConstraintException(
+                            "Access denied: You must add the GrantFor annotation to the CustomSession parameter of the method.");
+                }
+
+                if (!grantValueFor.equals(map.getGranted())) {
+                    throw new GrantedNotEqualException(
+                            "Access denied: The role of grantedFor does not match the role in the isGranted annotation.");
+                }
             }
 
             processMapping(request, response, requestURL, map, false);
@@ -124,7 +149,7 @@ public class ViewScan {
         String className = map.getClassName();
         String methodName = map.getMethodName();
         Object result = null;
-
+        System.out.println("processmap granted map "+ map.getGranted());
         try {
             result = invokingMethod(request, response, className, methodName);
         } catch (Exception e) {
@@ -271,6 +296,13 @@ public class ViewScan {
                     if (parameters[i].getType().equals(CustomSession.class)) {
                         syncHttpSessionToCustomSession(request);
                         CustomSession customSession = getCustomSession();
+
+                        if (parameters[i].isAnnotationPresent(GrantedFor.class)) {
+                            GrantedFor grantValue = parameters[i].getAnnotation(GrantedFor.class);
+                            grantValueFor = grantValue.value();
+                            System.out.println("grant value for "+ grantValueFor);
+                        }
+
                         args[i] = customSession;
                         idParamSession = i;
                     }
