@@ -1,13 +1,12 @@
 package com.controller;
 
 import org.framework.checker.Validator;
-
+import org.framework.annotation.security.Role;
 import org.framework.annotation.Controller;
 import org.framework.annotation.Param;
 import org.framework.annotation.Post;
 import org.framework.annotation.RequestMapping;
 import org.framework.view.ModelView;
-import org.framework.view.RedirectView;
 import org.framework.view.RedirectView;
 import com.model.UtilisateurModel;
 import com.model.VolModel;
@@ -27,6 +26,7 @@ public class Utilisateur {
         try {
             UtilisateurModel utilisateur = user.getbyPseudo();
             if (utilisateur.getRole().equals("admin")) {
+                Role.add("admin");
                 return new RedirectView("/vol.get");
             } else {
                 return new RedirectView("/login");

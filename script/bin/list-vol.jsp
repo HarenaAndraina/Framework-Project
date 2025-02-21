@@ -56,11 +56,54 @@ VolModel[] vols = (VolModel[]) request.getAttribute("vols");
         td {
             color: #333;
         }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 8px 12px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .btn-edit {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .btn-delete {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .btn-add {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 15px;
+            background-color: #007BFF;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .btn-add:hover {
+            background-color: #0056b3;
+        }
     </style>
 </head>
 <body>
 
-    <h1>Pseudo: <%= request.getAttribute("pseudo") %></h1>
+    <h1>Liste des Vols</h1>
+
+    <!-- Lien pour ajouter un nouveau vol -->
+    <a href="${pageContext.request.contextPath}/vol.create" class="btn-add">Ajouter un Vol</a>
 
     <table>
         <thead>
@@ -68,27 +111,31 @@ VolModel[] vols = (VolModel[]) request.getAttribute("vols");
                 <th>#</th>
                 <th>Avion</th>
                 <th>Date et Heure</th>
-                <th>Depart</th>
-                <th>Arrivee</th>
+                <th>Départ</th>
+                <th>Arrivée</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
             <% if (vols != null && vols.length > 0) { %>
-    <% for (int i = 0; i < vols.length; i++) { %>
-        <tr>
-            <td><strong><%= i + 1 %></strong></td>
-            <td><%= vols[i].getAvion().getNum() %></td>
-            <td><%= vols[i].getDateHeureVol() %></td>
-            <td><%= vols[i].getDepart().getNom() %></td>
-            <td><%= vols[i].getArrive().getNom() %></td>
-        </tr>
-    <% } %>
-<% } else { %>
-    <tr>
-        <td colspan="5">Aucun vol disponible.</td>
-    </tr>
-<% } %>
-
+                <% for (int i = 0; i < vols.length; i++) { %>
+                    <tr>
+                        <td><strong><%= i + 1 %></strong></td>
+                        <td><%= vols[i].getAvion().getNum() %></td>
+                        <td><%= vols[i].getDateHeureVol() %></td>
+                        <td><%= vols[i].getDepart().getNom() %></td>
+                        <td><%= vols[i].getArrive().getNom() %></td>
+                        <td class="action-buttons">
+                            <a href="${pageContext.request.contextPath}/vol.update?id=<%= vols[i].getId() %>" class="btn btn-edit">Modifier</a>
+                            <a href="${pageContext.request.contextPath}/vol.delete?id=<%= vols[i].getId() %>" class="btn btn-delete" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce vol ?');">Supprimer</a>
+                        </td>
+                    </tr>
+                <% } %>
+            <% } else { %>
+                <tr>
+                    <td colspan="6">Aucun vol disponible.</td>
+                </tr>
+            <% } %>
         </tbody>
     </table>
 

@@ -21,6 +21,7 @@ import org.framework.annotation.FileParamName;
 import org.framework.File.FileParam;
 import org.framework.annotation.Param;
 import org.framework.annotation.security.GrantedFor;
+import org.framework.annotation.security.Role;
 import org.framework.checker.Mapping;
 import org.framework.checker.ParamChecker;
 import org.framework.checker.RequestMappingChecker;
@@ -61,7 +62,6 @@ import com.google.gson.Gson;
 
 public class ViewScan {
     private static CustomSession customSession;
-    private static String grantValueFor = "";
 
     public static String getJspByURL(String url) {
         // Split the normalized URL by '/'
@@ -98,14 +98,14 @@ public class ViewScan {
             }
 
             if (mapRestAPI.isGrantedSet()) {
-                if (grantValueFor == null && !mapRestAPI.getGranted().isEmpty()) {
+                if (Role.getRole() == null ) {
                     throw new GrantConstraintException(
-                            "Access denied: You must add the GrantFor annotation to the CustomSession parameter of the method.");
+                            "Access denied: You must add the role value.");
                 }
 
-                if (!grantValueFor.equals(mapRestAPI.getGranted())) {
+                if (!Role.getRole().equals(mapRestAPI.getGranted())) {
                     throw new GrantedNotEqualException(
-                            "Access denied: The role of grantedFor does not match the role in the isGranted annotation.");
+                            "Access denied: The role name does not match the role in the isGranted annotation.");
                 }
             }
 
@@ -127,14 +127,14 @@ public class ViewScan {
 
             if (map.isGrantedSet()) {
                 System.out.println("atoooo");
-                if (grantValueFor.isBlank()) {
+                if (Role.getRole()==null) {
                     throw new GrantConstraintException(
-                            "Access denied: You must add the GrantFor annotation to the CustomSession parameter of the method.");
+                            "Access denied: You must add the role value.");
                 }
 
-                if (!grantValueFor.equals(map.getGranted())) {
+                if (!Role.getRole().equals(map.getGranted())) {
                     throw new GrantedNotEqualException(
-                            "Access denied: The role of grantedFor does not match the role in the isGranted annotation.");
+                            "Access denied: The role name does not match the role in the isGranted annotation.");
                 }
             }
 
@@ -304,12 +304,6 @@ public class ViewScan {
                     if (parameters[i].getType().equals(CustomSession.class)) {
                         syncHttpSessionToCustomSession(request);
                         CustomSession customSession = getCustomSession();
-
-                        if (parameters[i].isAnnotationPresent(GrantedFor.class)) {
-                            GrantedFor grantValue = parameters[i].getAnnotation(GrantedFor.class);
-                            grantValueFor = grantValue.value();
-                            System.out.println("grant value for " + grantValueFor);
-                        }
 
                         args[i] = customSession;
                         idParamSession = i;

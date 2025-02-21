@@ -17,9 +17,8 @@ import org.framework.classSources.ClassFinder;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;
 
-
 public class RequestMappingChecker {
-    private List< Mapping> mappingClasses = new ArrayList<>();
+    private List<Mapping> mappingClasses = new ArrayList<>();
 
     public void addClassMapping(Mapping map) throws RequestMappingException {
         String normalizedAnnotationValue = normalizeUrl(map.getUrl());
@@ -28,10 +27,10 @@ public class RequestMappingChecker {
 
         for (Mapping mapping : mappingClasses) {
             if (map.getUrl().equals(mapping.getUrl())) {
-                throw new RequestMappingException("Duplicate URL at "+map.getClassName()+" class");
+                throw new RequestMappingException("Duplicate URL at " + map.getClassName() + " class");
             }
             if (map.getMethodName().equals(mapping.getMethodName())) {
-                throw new RequestMappingException("Duplicate method at "+map.getClassName()+" class");
+                throw new RequestMappingException("Duplicate method at " + map.getClassName() + " class");
             }
         }
         this.mappingClasses.add(map);
@@ -45,29 +44,49 @@ public class RequestMappingChecker {
         }
         return false;
     }
-    
-    public List<Mapping> getRequestMappingMethods(Class<?> clazz) throws RequestMappingException {
-        List< Mapping> requestMappingMethods = new ArrayList<>();
+
+    boolean hasGrant(Class<?> clazz) {
+        if (clazz.isAnnotationPresent(IsGranted.class)) {
+            return true;
+        }
+        return false;
+    }
+
+    public List<Mapping> getRequestMappingMethods(Class<?> clazz, boolean grant) throws RequestMappingException {
+
+        List<Mapping> requestMappingMethods = new ArrayList<>();
         for (Method method : clazz.getDeclaredMethods()) {
             if (method.isAnnotationPresent(RequestMapping.class)) {
                 RequestMapping requestMapping = method.getAnnotation(RequestMapping.class);
-                Mapping map=new Mapping(clazz.getName(),method.getName(),requestMapping.value());
+                Mapping map = new Mapping(clazz.getName(), method.getName(), requestMapping.value());
                 
+                if (grant) {
+                    IsGranted grantValue = clazz.getAnnotation(IsGranted.class);
+
+                    if (grantValue.value().isEmpty()) {
+                        throw new RequestMappingException("Grant denied");
+                    }
+                    
+                    map.setGranted(grantValue.value());
+                    map.setGrantedSet(true);
+                }
+
                 if (method.isAnnotationPresent(Post.class)) {
                     map.setPost(true);
                 }
-                
+
                 if (method.isAnnotationPresent(Auth.class)) {
-                    map.setAuth(true);                
+                    map.setAuth(true);
                 }
-                
+
                 if (method.isAnnotationPresent(IsGranted.class)) {
-                    IsGranted grantValue=method.getAnnotation(IsGranted.class);
+                    IsGranted grantValue = method.getAnnotation(IsGranted.class);
                     map.setGranted(grantValue.value());
                     map.setGrantedSet(true);
-                    
-                    System.out.println("changer grantedvalue:"+ map.getGranted());
+
+                    System.out.println("changer grantedvalue:" + map.getGranted());
                 }
+
                 requestMappingMethods.add(map);
             }
         }
@@ -80,8 +99,10 @@ public class RequestMappingChecker {
         List<Class<?>> allClasses = ClassFinder.findClassesController(packageName);
 
         for (Class<?> clazz : allClasses) {
+
             if (hasRequestMapping(clazz)) {
-                List< Mapping> mappings = getRequestMappingMethods(clazz);
+
+                List<Mapping> mappings = getRequestMappingMethods(clazz, hasGrant(clazz));
 
                 for (Mapping map : mappings) {
                     addClassMapping(map);
@@ -90,22 +111,21 @@ public class RequestMappingChecker {
         }
     }
 
-    public List< Mapping> getMappingClasses() {
+    public List<Mapping> getMappingClasses() {
         return mappingClasses;
     }
 
-    public Mapping getMethodByURL(String url,HttpServletRequest request) throws RequestMappingException
-    {
+    public Mapping getMethodByURL(String url, HttpServletRequest request) throws RequestMappingException {
         String normalizedUrl = normalizeUrl(url);
-        Mapping map=null;
+        Mapping map = null;
 
         for (Mapping mapping : mappingClasses) {
-            
+
             if (mapping.getUrl().equals(normalizedUrl)) {
-                map=mapping;
+                map = mapping;
             }
         }
-    
+
         return map;
     }
 

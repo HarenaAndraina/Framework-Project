@@ -7,11 +7,14 @@ import org.framework.annotation.RequestMapping;
 import org.framework.view.ModelView;
 import org.framework.annotation.Param;
 import org.framework.annotation.Post;
+import org.framework.annotation.security.IsGranted;
+
 
 import com.model.AvionModel;
 import com.model.VilleModel;
 import com.model.VolModel;
 
+@IsGranted("admin")
 @Controller
 public class Vol {
 
@@ -53,7 +56,6 @@ public class Vol {
         }
 
         return model;
-
     }
 
     @Post
