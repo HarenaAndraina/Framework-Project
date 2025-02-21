@@ -96,6 +96,7 @@ public class ViewScan {
             if (customSession == null && mapRestAPI.isAuth()) {
                 throw new AuthConstraintException("Unauthorized: Controller need to be authentified");
             }
+
             if (mapRestAPI.isGrantedSet()) {
                 if (grantValueFor == null && !mapRestAPI.getGranted().isEmpty()) {
                     throw new GrantConstraintException(
@@ -148,7 +149,7 @@ public class ViewScan {
         String className = map.getClassName();
         String methodName = map.getMethodName();
         Object result = null;
-        System.out.println("processmap granted map "+ map.getGranted());
+        System.out.println("processmap granted map " + map.getGranted());
         try {
             result = invokingMethod(request, response, className, methodName);
         } catch (Exception e) {
@@ -197,10 +198,18 @@ public class ViewScan {
         } else if (result instanceof RedirectView) {
             RedirectView redirectView = (RedirectView) result;
 
+            HttpServletRequest modifiedRequest = new HttpServletRequestWrapper(request) {
+                @Override
+                public String getMethod() {
+                    return "GET"; // Override the method to GET
+                }
+            };
+
             RequestDispatcher dispatcher = null;
-            dispatcher = request.getRequestDispatcher(redirectView.getUrl());
+            dispatcher = modifiedRequest.getRequestDispatcher(redirectView.getUrl());
             System.out.println(redirectView.getUrl());
-            dispatcher.forward(request, response);
+            dispatcher.forward(modifiedRequest, response);
+
         } else {
             throw new ViewException("Unsupported return type for Web response");
         }
@@ -299,7 +308,7 @@ public class ViewScan {
                         if (parameters[i].isAnnotationPresent(GrantedFor.class)) {
                             GrantedFor grantValue = parameters[i].getAnnotation(GrantedFor.class);
                             grantValueFor = grantValue.value();
-                            System.out.println("grant value for "+ grantValueFor);
+                            System.out.println("grant value for " + grantValueFor);
                         }
 
                         args[i] = customSession;
@@ -341,6 +350,7 @@ public class ViewScan {
                 }
 
                 result = method.invoke(instance, args);
+
                 syncCustomSessionToHttpSession(request);
             }
         } catch (Exception e) {

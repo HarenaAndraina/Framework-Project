@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.framework.annotation.FieldParamName;
+import org.framework.annotation.validation.Min;
+import org.framework.checker.validation.clazz.InvalidValidator;
 import org.framework.checker.validation.interf.ValidatorInterface;
 import org.framework.checker.validation.registry.ValidatorRegistry;
 import org.framework.exceptions.ValidationException;
@@ -13,39 +15,39 @@ import org.framework.exceptions.ValidationException;
 import jakarta.servlet.http.HttpServletRequest;
 
 public class Validator {
-     Map<String, String> errors = new HashMap<>();
-         Map<String, Object> oldValue = new HashMap<>();
-            
-            public  void validate(Field[] fields, HttpServletRequest request, Object paramObject,
-                    String paramName)
-                    throws IllegalAccessException {
-               
-        
-                for (Field field : fields) {
-                    field.setAccessible(true);
-        
-                    String fieldName = getFieldParamName(field);
-                    if (fieldName == null)
-                        continue; // Skip fields without FieldParamName annotation
-        
-                    String fullParamName = paramName + "." + fieldName;
-                    String paramValue = request.getParameter(fullParamName);
-        
-                    if (paramValue != null) {
-                        try {
-                            Object convertedValue = convertToFieldType(field, paramValue);
-                            field.set(paramObject, convertedValue);
-                            oldValue.put(fullParamName, convertedValue);
-                            
-                            // Validate using appropriate validator
-                            for (Annotation annotation : field.getAnnotations()) {
-                                ValidatorInterface validator = ValidatorRegistry.getValidator(annotation.annotationType());
-        
-                                if (validator != null) {
-                                    try {
-                                        validator.validate(field, convertedValue);
-                                } catch (ValidationException e) {
-                                    errors.put(fullParamName, e.getMessage());
+    Map<String, String> errors = new HashMap<>();
+    Map<String, Object> oldValue = new HashMap<>();
+
+    public void validate(Field[] fields, HttpServletRequest request, Object paramObject,
+            String paramName)
+            throws IllegalAccessException {
+
+        for (Field field : fields) {
+            field.setAccessible(true);
+
+            String fieldName = getFieldParamName(field);
+            if (fieldName == null)
+                continue; // Skip fields without FieldParamName annotation
+
+            String fullParamName = paramName + "." + fieldName;
+            String paramValue = request.getParameter(fullParamName);
+
+            if (paramValue != null) {
+                try {
+                    Object convertedValue = convertToFieldType(field, paramValue);
+                    field.set(paramObject, convertedValue);
+                    oldValue.put(fullParamName, convertedValue);
+
+                    // Validate using appropriate validator
+                    for (Annotation annotation : field.getAnnotations()) {
+                                               
+                        ValidatorInterface validator = ValidatorRegistry.getValidator(annotation);
+                        
+                        if (validator != null) {
+                            try {
+                                validator.validate(field, convertedValue);
+                            } catch (ValidationException e) {
+                                errors.put(fullParamName, e.getMessage());
                             }
                         }
                     }
@@ -57,7 +59,8 @@ public class Validator {
 
     }
 
-    private  String getFieldParamName(Field field) {
+
+    private String getFieldParamName(Field field) {
         if (field.isAnnotationPresent(FieldParamName.class)) {
             FieldParamName annotation = field.getAnnotation(FieldParamName.class);
             return annotation.value();
@@ -65,7 +68,7 @@ public class Validator {
         return null;
     }
 
-    private  Object convertToFieldType(Field field, String value) throws Exception {
+    private Object convertToFieldType(Field field, String value) throws Exception {
         Class<?> fieldType = field.getType();
 
         try {
@@ -89,12 +92,11 @@ public class Validator {
         }
     }
 
-
-    public  Map<String, String> getErrors() {
+    public Map<String, String> getErrors() {
         return errors;
     }
 
-    public  Map<String, Object> getOldValue() {
+    public Map<String, Object> getOldValue() {
         return oldValue;
     }
 

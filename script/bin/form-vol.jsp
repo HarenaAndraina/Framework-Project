@@ -1,9 +1,14 @@
+<%@ page import="com.model.*" %>
+<%
+AvionModel[] avions = (AvionModel[]) request.getAttribute("avions");
+VilleModel[] villes = (VilleModel[]) request.getAttribute("villes");
+%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Page</title>
+    <title>insert vol Page</title>
     <style>
         /* Style général du corps de la page */
         body {
@@ -82,15 +87,36 @@
     </style>
 </head>
 <body>
-    <form action="${pageContext.request.contextPath}/login.do" method="post">
-        <label for="pseudo">Pseudo:</label>
-        <input type="text" id="pseudo" name="empka.pseud" required>
-        <%= request.getAttribute("error_empka.pseud") != null ? request.getAttribute("error_empka.pseud") : "" %>
+    <form action="${pageContext.request.contextPath}/vol.save" method="post">
+        
+        <label for="date">date et heure:</label>
+        <input type="datetime-local" id="dateHeure" name="vol.dateHeureVol" required>
+        <%= request.getAttribute("error_vol.dateHeureVol") != null ? request.getAttribute("error_vol.dateHeureVol") : "" %>
 
 
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="empka.passwrd" >
-        <%= request.getAttribute("error_empka.passwrd") != null ? request.getAttribute("error_empka.passwrd") : "" %>
+        <label for="depart">depart:</label>
+        <select  id="depart" name="vol.depart" >
+            <option selected>choissir ville de depart</option>
+                <% for(int i=0; i<villes.length; i++){ %>
+                    <option value="<%= villes[i].getId() %>" ><%= villes[i].getNom() %></option>
+                <% }%>
+        </select>
+
+        <label for="arrive">arrive:</label>
+        <select  id="arrive" name="vol.arrive" >
+            <option selected>choissir ville d'arrive</option>
+                <% for(int i=0; i<villes.length; i++){ %>
+                    <option value="<%= villes[i].getId() %>" ><%= villes[i].getNom() %></option>
+                <% }%>
+        </select>   
+
+        <label for="avion">avion:</label>
+        <select  id="avion" name="vol.avion" >
+            <option selected>choissir avion</option>
+                <% for(int i=0; i<avions.length; i++){ %>
+                    <option value="<%= avions[i].getId() %>" ><%= avions[i].getNum() %></option>
+                <% }%>
+        </select> 
 
         <input type="submit" value="Valider">
     </form>
