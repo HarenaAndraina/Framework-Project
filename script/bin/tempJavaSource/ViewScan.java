@@ -98,14 +98,14 @@ public class ViewScan {
             }
 
             if (mapRestAPI.isGrantedSet()) {
-                if (Role.getRole() == null && !mapRestAPI.getGranted().isEmpty()) {
+                if (Role.getRole() == null ) {
                     throw new GrantConstraintException(
-                            "Access denied: You must add the GrantFor annotation to the CustomSession parameter of the method.");
+                            "Access denied: You must add the role value.");
                 }
 
                 if (!Role.getRole().equals(mapRestAPI.getGranted())) {
                     throw new GrantedNotEqualException(
-                            "Access denied: The role of grantedFor does not match the role in the isGranted annotation.");
+                            "Access denied: The role name does not match the role in the isGranted annotation.");
                 }
             }
 
@@ -129,12 +129,12 @@ public class ViewScan {
                 System.out.println("atoooo");
                 if (Role.getRole()==null) {
                     throw new GrantConstraintException(
-                            "Access denied: You must add the GrantFor annotation to the CustomSession parameter of the method.");
+                            "Access denied: You must add the role value.");
                 }
 
                 if (!Role.getRole().equals(map.getGranted())) {
                     throw new GrantedNotEqualException(
-                            "Access denied: The role of grantedFor does not match the role in the isGranted annotation.");
+                            "Access denied: The role name does not match the role in the isGranted annotation.");
                 }
             }
 
@@ -361,8 +361,13 @@ public class ViewScan {
         try {
             Object paramObject = paramClass.getDeclaredConstructor().newInstance();
             Field[] fields = paramClass.getDeclaredFields();
+
+            //valider le champ de l'objet injecter
             Validator valide = new Validator();
             valide.validate(fields, request, paramObject, paramName);
+            
+
+            //s'il y a une erreur
             Map<String, String> validationErrors = valide.getErrors();
 
             if (!validationErrors.isEmpty()) {
@@ -390,7 +395,10 @@ public class ViewScan {
                 RequestDispatcher dispatcher = modifiedRequest.getRequestDispatcher(getPREVURL(request));
                 dispatcher.forward(modifiedRequest, response);
             }
+
+
             args[i] = paramObject;
+            
         } catch (Exception e) {
             e.printStackTrace();
             throw new InvocationMethodException("Cannot access the field parameter");

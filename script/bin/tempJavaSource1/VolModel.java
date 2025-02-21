@@ -16,16 +16,16 @@ import com.model.VilleModel;
 public class VolModel {
     private int id;
 
-    @FieldParamName("avion")
+    @FieldParamName( value = "avion",foreign=true)
     private AvionModel avion;
 
     @FieldParamName("dateHeureVol")
     private Timestamp dateHeureVol;
 
-    @FieldParamName("depart")
+    @FieldParamName(value =  "depart",foreign=true)
     private VilleModel depart;
 
-    @FieldParamName("arrive")
+    @FieldParamName( value = "arrive",foreign=true)
     private VilleModel arrive;
 
     public int getId() {
@@ -153,7 +153,7 @@ public class VolModel {
 
             // Query to insert the new commande into the database and retrieve the generated
             // key
-            query = "INSERT INTO vol(id_avion, dateheurevol, depart, arrive) VALUES (?, ?, ?, ?, ?)";
+            query = "INSERT INTO vol(id_avion, dateheurevol, depart, arrive) VALUES (?, ?, ?, ?)";
             stmt = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
 
             // Set parameters for the prepared statement

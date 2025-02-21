@@ -35,8 +35,10 @@ public class Validator {
             if (paramValue != null) {
                 try {
                     Object convertedValue = convertToFieldType(field, paramValue);
+                    
                     field.set(paramObject, convertedValue);
-                    oldValue.put(fullParamName, convertedValue);
+
+                    oldValue.put(fullParamName, paramValue);
 
                     // Validate using appropriate validator
                     for (Annotation annotation : field.getAnnotations()) {
@@ -68,9 +70,13 @@ public class Validator {
         return null;
     }
 
+    private boolean isForeign(Field field){
+        return field.getAnnotation(FieldParamName.class).foreign();
+    }
+
     private Object convertToFieldType(Field field, String value) throws Exception {
         Class<?> fieldType = field.getType();
-
+    
         try {
             if (fieldType.equals(int.class) || fieldType.equals(Integer.class)) {
                 return Integer.parseInt(value);
@@ -84,6 +90,11 @@ public class Validator {
                 return Boolean.parseBoolean(value);
             } else if (fieldType.equals(String.class)) {
                 return value;
+            } else if (fieldType.equals(java.sql.Timestamp.class)) {
+                return convertStringToTimestamp(value);
+            } else if (isForeign(field)) {
+                // Gestion des types personnalisés (comme AvionModel)
+                return convertToCustomType(fieldType, value);
             } else {
                 throw new IllegalArgumentException("Unsupported field type: " + fieldType);
             }
@@ -91,7 +102,42 @@ public class Validator {
             throw new Exception("Failed to convert value to " + fieldType.getSimpleName() + ": " + e.getMessage(), e);
         }
     }
+    
+    private Object convertToCustomType(Class<?> fieldType, String value) throws Exception {
+        try {
+            // Créer une instance de la classe personnalisée (par exemple, AvionModel)
+            Object instance = fieldType.getDeclaredConstructor().newInstance();
+    
+            // Supposons que la valeur est un ID pour l'objet personnalisé
+            Field idField = fieldType.getDeclaredField("id");
+            idField.setAccessible(true);
+    
+            // Convertir la valeur en type approprié pour l'ID (par exemple, int ou long)
+            if (idField.getType().equals(int.class) || idField.getType().equals(Integer.class)) {
+                idField.set(instance, Integer.parseInt(value));
+            } else if (idField.getType().equals(long.class) || idField.getType().equals(Long.class)) {
+                idField.set(instance, Long.parseLong(value));
+            } else {
+                throw new IllegalArgumentException("Unsupported ID type for field: " + idField.getType());
+            }
+    
+            return instance;
+        } catch (Exception e) {
+            throw new Exception("Failed to convert value to " + fieldType.getSimpleName() + ": " + e.getMessage(), e);
+        }
+    }
 
+    private java.sql.Timestamp convertStringToTimestamp(String value) throws Exception {
+        try {
+            // Correct format to parse "2025-02-21T15:09"
+            java.text.SimpleDateFormat dateFormat = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
+            java.util.Date parsedDate = dateFormat.parse(value);
+            return new java.sql.Timestamp(parsedDate.getTime());
+        } catch (Exception e) {
+            throw new Exception("Failed to convert value to Timestamp: " + e.getMessage(), e);
+        }
+    }
+    
     public Map<String, String> getErrors() {
         return errors;
     }

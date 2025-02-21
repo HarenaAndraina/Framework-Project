@@ -361,8 +361,13 @@ public class ViewScan {
         try {
             Object paramObject = paramClass.getDeclaredConstructor().newInstance();
             Field[] fields = paramClass.getDeclaredFields();
+
+            //valider le champ de l'objet injecter
             Validator valide = new Validator();
             valide.validate(fields, request, paramObject, paramName);
+            
+
+            //s'il y a une erreur
             Map<String, String> validationErrors = valide.getErrors();
 
             if (!validationErrors.isEmpty()) {
@@ -390,7 +395,10 @@ public class ViewScan {
                 RequestDispatcher dispatcher = modifiedRequest.getRequestDispatcher(getPREVURL(request));
                 dispatcher.forward(modifiedRequest, response);
             }
+
+
             args[i] = paramObject;
+            
         } catch (Exception e) {
             e.printStackTrace();
             throw new InvocationMethodException("Cannot access the field parameter");
