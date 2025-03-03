@@ -3,6 +3,7 @@ package com.model;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -16,16 +17,16 @@ import com.model.VilleModel;
 public class VolModel {
     private int id;
 
-    @FieldParamName( value = "avion",foreign=true)
+    @FieldParamName(value = "avion", foreign = true)
     private AvionModel avion;
 
     @FieldParamName("dateHeureVol")
     private Timestamp dateHeureVol;
 
-    @FieldParamName(value =  "depart",foreign=true)
+    @FieldParamName(value = "depart", foreign = true)
     private VilleModel depart;
 
-    @FieldParamName( value = "arrive",foreign=true)
+    @FieldParamName(value = "arrive", foreign = true)
     private VilleModel arrive;
 
     public int getId() {
@@ -136,6 +137,61 @@ public class VolModel {
         return vols;
     }
 
+    public VolModel getbyId(int id) throws Exception {
+        VolModel vol = null;
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        String query = "null";
+
+        // Use the configuration in your code
+        String username = "postgres";
+        String password = "postgres";
+        String databaseName = "avion";
+
+        AvionModel avion = new AvionModel();
+        VilleModel ville = new VilleModel();
+
+        try {
+            conn = Postgres.getConnection(username, password, databaseName);
+
+            // Query to retrieve a specific client by ID
+            query = "SELECT * FROM vol WHERE id = ?";
+            stmt = conn.prepareStatement(query);
+            stmt.setInt(1, id);
+
+            rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                // Populate the Client object with the retrieved data
+                vol = new VolModel(
+                        rs.getInt("id"),
+                        avion.getbyId(rs.getInt("id_avion")),
+                        rs.getTimestamp("dateHeureVol"),
+                        ville.getbyId(rs.getInt("depart")),
+                        ville.getbyId(rs.getInt("arrive")));
+            }
+
+        } catch (Exception e) {
+            throw new Exception("Error executing SQL statement: " + e.getMessage() + ". SQL Statement: " + query, e);
+        } finally {
+            // Close resources in the reverse order of their creation
+            if (rs != null) {
+                rs.close();
+            }
+            if (stmt != null) {
+                stmt.close();
+            }
+            if (conn != null) {
+                conn.close();
+            }
+        }
+        if (vol == null) {
+            throw new Exception("Client null");
+        }
+        return vol;
+    }
+
     public void insert() throws Exception {
         Connection conn = null;
         PreparedStatement stmt = null;
@@ -201,6 +257,167 @@ public class VolModel {
                 conn.close();
             }
         }
+    }
+
+    public void delete() throws Exception {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        String query = null;
+
+        // Use the configuration in your code
+        String username = "postgres";
+        String password = "postgres";
+        String databaseName = "avion";
+
+        try {
+            conn = Postgres.getConnection(username, password, databaseName);
+            conn.setAutoCommit(false);
+
+            // Query to delete the depense from the database
+            query = "DELETE FROM vol WHERE id=?";
+            stmt = conn.prepareStatement(query);
+
+            // Set parameter for the prepared statement
+            stmt.setInt(1, this.getId());
+
+            // Execute the delete
+            int rowsAffected = stmt.executeUpdate();
+
+            if (rowsAffected == 0) {
+                throw new Exception("Delete failed, no rows affected.");
+            }
+
+            // Commit the transaction
+            conn.commit();
+
+        } catch (Exception e) {
+            // Handle exceptions and rollback the transaction if needed
+            if (conn != null) {
+                conn.rollback();
+            }
+            throw new Exception("Error executing SQL statement: " + e.getMessage() + ". SQL Statement: " + query, e);
+        } finally {
+            // Restore auto-commit to true and close resources
+            if (conn != null) {
+                conn.setAutoCommit(true);
+                if (stmt != null) {
+                    stmt.close();
+                }
+                conn.close();
+            }
+        }
+    }
+
+    public void update() throws Exception {
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        String query = null;
+
+        // Use the configuration in your code
+        String username = "postgres";
+        String password = "postgres";
+        String databaseName = "avion";
+
+        try {
+            conn = Postgres.getConnection(username, password, databaseName);
+            conn.setAutoCommit(false);
+
+            // Query to update the depense in the database
+            query = "UPDATE vol SET id_avion=?, dateheurevol=?, depart=?, arrive=? WHERE id=?";
+            stmt = conn.prepareStatement(query);
+
+            // Set parameters for the prepared statement
+            stmt.setInt(1, this.getAvion().getId());
+            stmt.setTimestamp(2, this.getDateHeureVol());
+            stmt.setInt(3, this.getDepart().getId());
+            stmt.setInt(4, this.getArrive().getId());
+            stmt.setInt(5, this.getId());
+            // Execute the update
+            int rowsAffected = stmt.executeUpdate();
+
+            if (rowsAffected == 0) {
+                throw new Exception("Update failed, no rows affected.");
+            }
+
+            // Commit the transaction
+            conn.commit();
+
+        } catch (Exception e) {
+            // Handle exceptions and rollback the transaction if needed
+            if (conn != null) {
+                conn.rollback();
+            }
+            throw new Exception("Error executing SQL statement: " + e.getMessage() + ". SQL Statement: " + query, e);
+        } finally {
+            // Restore auto-commit to true and close resources
+            if (conn != null) {
+                conn.setAutoCommit(true);
+                if (stmt != null) {
+                    stmt.close();
+                }
+                conn.close();
+            }
+        }
+    }
+
+    public List<VolModel> rechercherVols(Integer idAvion, Timestamp dateHeure, Integer idDepart, Integer idArrivee) throws Exception {
+        List<VolModel> vols = new ArrayList<>();
+
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        StringBuilder query = new StringBuilder("SELECT * FROM vol WHERE 1=1");
+        
+        if (idAvion != -1) query.append(" AND id_avion = ?");
+        if (dateHeure != null) query.append(" AND dateheurevol = ?");
+        if (idDepart != -1) query.append(" AND depart = ?");
+        if (idArrivee != -1) query.append(" AND arrive = ?");
+
+        // Use the configuration in your code
+        String username = "postgres";
+        String password = "postgres";
+        String databaseName = "avion";
+
+        AvionModel avion=new AvionModel();
+        VilleModel ville=new VilleModel();
+
+        try {
+            conn = Postgres.getConnection(username,password,databaseName);
+            stmt = conn.prepareStatement(query.toString());
+
+            int index = 1;
+            if (idAvion != -1) stmt.setInt(index++, idAvion);
+            if (dateHeure != null) stmt.setTimestamp(index++, dateHeure);
+            if (idDepart != -1) stmt.setInt(index++, idDepart);
+            if (idArrivee != -1) stmt.setInt(index++, idArrivee);
+
+            rs = stmt.executeQuery();
+            while (rs.next()) {
+                VolModel vol = new VolModel(
+                    rs.getInt("id"),
+                    avion.getbyId(rs.getInt("id_avion")),
+                    rs.getTimestamp("dateheurevol"),
+                    ville.getbyId(rs.getInt("depart")),
+                    ville.getbyId(rs.getInt("arrive"))
+                );
+                vols.add(vol);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }finally {
+            // Close resources in the reverse order of their creation
+            if (rs != null) {
+                rs.close();
+            }
+            if (stmt != null) {
+                stmt.close();
+            }
+            if (conn != null) {
+                conn.close();
+            }
+        }
+
+        return vols;
     }
 
 }

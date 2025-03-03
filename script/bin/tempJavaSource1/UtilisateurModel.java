@@ -126,4 +126,56 @@ public class UtilisateurModel {
     public void setRole(String role) {
         this.role = role;
     }
+
+    public UtilisateurModel getbyId(int id) throws Exception {
+        UtilisateurModel user = null;
+        Connection conn = null;
+        PreparedStatement stmt = null;
+        ResultSet rs = null;
+        String query = "null";
+
+        // Use the configuration in your code
+        String username = "postgres";
+        String password = "postgres";
+        String databaseName = "avion";
+
+        try {
+            conn = Postgres.getConnection(username, password, databaseName);
+
+            // Query to retrieve a specific client by ID
+            query = "SELECT * FROM utilisateur WHERE id = ?";
+            stmt = conn.prepareStatement(query);
+            stmt.setInt(1, this.getId());
+           
+
+            rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                // Populate the Client object with the retrieved data
+                user = new UtilisateurModel(
+                        rs.getInt("id"),
+                        rs.getString("pseudo"),
+                        rs.getString("password") ,
+                        rs.getString("role")                       
+                );
+            }
+        } catch (Exception e) {
+            throw new Exception("Error executing SQL statement: " + e.getMessage() + ". SQL Statement: " + query, e);
+        } finally {
+            // Close resources in the reverse order of their creation
+            if (rs != null) {
+                rs.close();
+            }
+            if (stmt != null) {
+                stmt.close();
+            }
+            if (conn != null) {
+                conn.close();
+            }
+        }
+        if (user == null) {
+            throw new Exception("user null");
+        }
+        return user;
+    }
 }

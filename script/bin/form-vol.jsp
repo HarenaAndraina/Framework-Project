@@ -2,6 +2,8 @@
 <%
 AvionModel[] avions = (AvionModel[]) request.getAttribute("avions");
 VilleModel[] villes = (VilleModel[]) request.getAttribute("villes");
+
+VolModel edit=(VolModel) request.getAttribute("edit");
 %>
 <!DOCTYPE html>
 <html lang="en">
@@ -89,16 +91,17 @@ VilleModel[] villes = (VilleModel[]) request.getAttribute("villes");
 <body>
     <form action="${pageContext.request.contextPath}/vol.save" method="post">
         
-        <label for="date">date et heure:</label>
-        <input type="datetime-local" id="dateHeure" name="vol.dateHeureVol" required>
+        <label for="date">date et heure de depart:</label>
+        <input type="datetime-local" id="dateHeure" name="vol.dateHeureVol" value="<%= (edit != null) ? edit.getDateHeureVol() : "" %>" required>
         <%= request.getAttribute("error_vol.dateHeureVol") != null ? request.getAttribute("error_vol.dateHeureVol") : "" %>
-
 
         <label for="depart">depart:</label>
         <select  id="depart" name="vol.depart" >
             <option selected>choissir ville de depart</option>
                 <% for(int i=0; i<villes.length; i++){ %>
-                    <option value="<%= villes[i].getId() %>" ><%= villes[i].getNom() %></option>
+                    <option value="<%= villes[i].getId() %>" <% if (edit != null && edit.getDepart().getId() == villes[i].getId()) { %>
+                                            selected
+                                            <% }%> > <%= villes[i].getNom() %></option>
                 <% }%>
         </select>
 
@@ -106,7 +109,9 @@ VilleModel[] villes = (VilleModel[]) request.getAttribute("villes");
         <select  id="arrive" name="vol.arrive" >
             <option selected>choissir ville d'arrive</option>
                 <% for(int i=0; i<villes.length; i++){ %>
-                    <option value="<%= villes[i].getId() %>" ><%= villes[i].getNom() %></option>
+                    <option value="<%= villes[i].getId() %>" <% if (edit != null && edit.getArrive().getId() == villes[i].getId()) { %>
+                                            selected
+                                            <% }%> ><%= villes[i].getNom() %></option>
                 <% }%>
         </select>   
 
@@ -114,11 +119,19 @@ VilleModel[] villes = (VilleModel[]) request.getAttribute("villes");
         <select  id="avion" name="vol.avion" >
             <option selected>choissir avion</option>
                 <% for(int i=0; i<avions.length; i++){ %>
-                    <option value="<%= avions[i].getId() %>" ><%= avions[i].getNum() %></option>
+                    <option value="<%= avions[i].getId() %>" <% if (edit != null && edit.getAvion().getId() == avions[i].getId()) { %>
+                                            selected
+                                            <% }%> ><%= avions[i].getNum() %></option>
                 <% }%>
         </select> 
 
+        <% if (edit != null) {%>
+            <input type="hidden" name="idVolEdit" value="<%= edit.getId()%>">
+        <% }%> 
+
         <input type="submit" value="Valider">
     </form>
+    <a href="${pageContext.request.contextPath}/vol.get" class="btn-add">voir list</a>
+
 </body>
 </html>

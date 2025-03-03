@@ -8,6 +8,6 @@ import java.lang.annotation.RetentionPolicy;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.PARAMETER,ElementType.TYPE_PARAMETER})
-public @interface GrantedFor {
+public @interface a {
     String value() default "";
 }

@@ -22,7 +22,6 @@ public class RequestMappingChecker {
 
     public void addClassMapping(Mapping map) throws RequestMappingException {
         String normalizedAnnotationValue = normalizeUrl(map.getUrl());
-
         map.setUrl(normalizedAnnotationValue);
 
         for (Mapping mapping : mappingClasses) {
@@ -33,7 +32,9 @@ public class RequestMappingChecker {
                 throw new RequestMappingException("Duplicate method at " + map.getClassName() + " class");
             }
         }
+
         this.mappingClasses.add(map);
+
     }
 
     boolean hasRequestMapping(Class<?> clazz) {
@@ -53,39 +54,47 @@ public class RequestMappingChecker {
     }
 
     public List<Mapping> getRequestMappingMethods(Class<?> clazz, boolean grant) throws RequestMappingException {
-
         List<Mapping> requestMappingMethods = new ArrayList<>();
         for (Method method : clazz.getDeclaredMethods()) {
             if (method.isAnnotationPresent(RequestMapping.class)) {
                 RequestMapping requestMapping = method.getAnnotation(RequestMapping.class);
-                Mapping map = new Mapping(clazz.getName(), method.getName(), requestMapping.value());
-                
-                if (grant) {
-                    IsGranted grantValue = clazz.getAnnotation(IsGranted.class);
+                String grantedValue = null;
+                boolean grantedSet = false;
 
-                    if (grantValue.value().isEmpty()) {
-                        throw new RequestMappingException("Grant denied");
-                    }
-                    
-                    map.setGranted(grantValue.value());
-                    map.setGrantedSet(true);
-                }
-
-                if (method.isAnnotationPresent(Post.class)) {
-                    map.setPost(true);
-                }
-
-                if (method.isAnnotationPresent(Auth.class)) {
-                    map.setAuth(true);
-                }
-
+                // Check for method-level @IsGranted annotation
                 if (method.isAnnotationPresent(IsGranted.class)) {
                     IsGranted grantValue = method.getAnnotation(IsGranted.class);
-                    map.setGranted(grantValue.value());
-                    map.setGrantedSet(true);
-
-                    System.out.println("changer grantedvalue:" + map.getGranted());
+                    if (!grantValue.value().isEmpty()) {
+                        grantedValue = grantValue.value();
+                        grantedSet = true;
+                    } else {
+                        throw new RequestMappingException("Grant denied for method " + method.getName());
+                    }
                 }
+                // Apply class-level @IsGranted annotation only if no method-level annotation is
+                // present
+                else if (grant && clazz.isAnnotationPresent(IsGranted.class)) {
+                    IsGranted grantValue = clazz.getAnnotation(IsGranted.class);
+                    if (!grantValue.value().isEmpty()) {
+                        grantedValue = grantValue.value();
+                        grantedSet = true;
+                    } else {
+                        throw new RequestMappingException("Grant denied for class " + clazz.getName());
+                    }
+                }
+
+                boolean isPost = method.isAnnotationPresent(Post.class);
+                boolean isAuth = method.isAnnotationPresent(Auth.class);
+
+                // Create a new Mapping instance
+                Mapping map = new Mapping(
+                        clazz.getName(),
+                        method.getName(),
+                        requestMapping.value(),
+                        grantedValue,
+                        grantedSet,
+                        isPost,
+                        isAuth);
 
                 requestMappingMethods.add(map);
             }

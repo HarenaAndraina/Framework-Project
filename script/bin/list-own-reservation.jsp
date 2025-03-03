@@ -1,16 +1,14 @@
 <%@ page import="com.model.*" %>
 <%
-VolModel[] vols = (VolModel[]) request.getAttribute("vols");
 
-AvionModel[] avions = (AvionModel[]) request.getAttribute("avions");
-VilleModel[] villes = (VilleModel[]) request.getAttribute("villes");
+ReservationModel[] reservations = (ReservationModel[]) request.getAttribute("reservations");
 %>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Liste des Vols</title>
+    <title>Liste des reservations</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -103,43 +101,7 @@ VilleModel[] villes = (VilleModel[]) request.getAttribute("villes");
 </head>
 <body>
 
-    <h1>Liste des Vols</h1>
-
-    <!-- Lien pour ajouter un nouveau vol -->
-    <a href="${pageContext.request.contextPath}/vol.create" class="btn-add">Ajouter un Vol</a>
-    
-
-<form action="${pageContext.request.contextPath}/vol.filter" method="post">
-
-    <label for="date">date et heure de depart:</label>
-    <input type="datetime-local" id="dateHeure" name="dateHeureVol"  >
-
-    <label for="depart">depart:</label>
-    <select  id="depart" name="depart" >
-        <option value="-1" >choissir ville de depart</option>
-            <% for(int i=0; i<villes.length; i++){ %>
-                <option value="<%= villes[i].getId() %>" > <%= villes[i].getNom() %></option>
-            <% }%>
-    </select>
-
-        <label for="arrive">arrive:</label>
-        <select  id="arrive" name="arrive" >
-            <option value="-1" >choissir ville d'arrive</option>
-                <% for(int i=0; i<villes.length; i++){ %>
-                    <option value="<%= villes[i].getId() %>" ><%= villes[i].getNom() %></option>
-                <% }%>
-        </select>   
-
-        <label for="avion">avion:</label>
-        <select  id="avion" name="avion" >
-            <option value="-1" >choissir avion</option>
-                <% for(int i=0; i<avions.length; i++){ %>
-                    <option value="<%= avions[i].getId() %>" ><%= avions[i].getNum() %></option>
-                <% }%>
-        </select> 
-
-        <input type="submit" value="Valider">
-</form>
+    <h1>Liste de vos reservations</h1>
 
     <table>
         <thead>
@@ -149,29 +111,29 @@ VilleModel[] villes = (VilleModel[]) request.getAttribute("villes");
                 <th>Date et Heure</th>
                 <th>Depart</th>
                 <th>Arrivee</th>
+                <th>siege</th>
                 <th>Actions</th>
             </tr>
         </thead>
         <tbody>
-            <% if (vols != null && vols.length > 0) { %>
-                <% for (int i = 0; i < vols.length; i++) { %>
+            <% if (reservations != null && reservations.length > 0) { %>
+                <% for (int i = 0; i < reservations.length; i++) { %>
                     <tr>
                         <td><strong><%= i + 1 %></strong></td>
-                        <td><%= vols[i].getAvion().getNum() %></td>
-                        <td><%= vols[i].getDateHeureVol() %></td>
-                        <td><%= vols[i].getDepart().getNom() %></td>
-                        <td><%= vols[i].getArrive().getNom() %></td>
+                        <td><%= reservations[i].getVol().getAvion().getNum() %></td>
+                        <td><%= reservations[i].getVol().getDateHeureVol() %></td>
+                        <td><%= reservations[i].getVol().getDepart().getNom() %></td>
+                        <td><%= reservations[i].getVol().getArrive().getNom() %></td>
+                        <td><%= reservations[i].getAvionSiege().getSiege().getNom() %></td>
+
                         <td class="action-buttons">
-                           <a href="${pageContext.request.contextPath}/res.add?id=<%= vols[i].getId() %>" class="btn-add">Ajouter gestion de reservation</a>
-                            <a href="${pageContext.request.contextPath}/vol.sold?id_vol=<%= vols[i].getId() %>" class="btn btn-add">add sold</a>
-                            <a href="${pageContext.request.contextPath}/vol.update?id=<%= vols[i].getId() %>" class="btn btn-edit">Modifier</a>
-                            <a href="${pageContext.request.contextPath}/vol.delete?id=<%= vols[i].getId() %>" class="btn btn-delete" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce vol ?');">Supprimer</a>
+                            <a href="${pageContext.request.contextPath}/res.annulation?id=<%= reservations[i].getId() %>" class="btn btn-delete">annuler</a>
                         </td>
                     </tr>
                 <% } %>
             <% } else { %>
                 <tr>
-                    <td colspan="6">Aucun vol disponible.</td>
+                    <td colspan="6">Aucun reservation disponible.</td>
                 </tr>
             <% } %>
         </tbody>

@@ -16,11 +16,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+
 import org.framework.annotation.FieldParamName;
 import org.framework.annotation.FileParamName;
 import org.framework.File.FileParam;
 import org.framework.annotation.Param;
-import org.framework.annotation.security.GrantedFor;
 import org.framework.annotation.security.Role;
 import org.framework.checker.Mapping;
 import org.framework.checker.ParamChecker;
@@ -127,12 +127,14 @@ public class ViewScan {
 
             if (map.isGrantedSet()) {
                 System.out.println("atoooo");
+                
                 if (Role.getRole()==null) {
                     throw new GrantConstraintException(
                             "Access denied: You must add the role value.");
                 }
 
                 if (!Role.getRole().equals(map.getGranted())) {
+                    System.out.println(map.getGranted());
                     throw new GrantedNotEqualException(
                             "Access denied: The role name does not match the role in the isGranted annotation.");
                 }
@@ -149,7 +151,7 @@ public class ViewScan {
         String className = map.getClassName();
         String methodName = map.getMethodName();
         Object result = null;
-        System.out.println("processmap granted map " + map.getGranted());
+        System.out.println("processmap granted map " + map.getGranted()+ " for method "+ map.getMethodName());
         try {
             result = invokingMethod(request, response, className, methodName);
         } catch (Exception e) {

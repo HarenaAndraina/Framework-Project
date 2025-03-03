@@ -22,16 +22,17 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.annotation.MultipartConfig;
 
-@MultipartConfig(
-    fileSizeThreshold = 1024 * 1024 * 1,  // 1 MB
-    maxFileSize = 1024 * 1024 * 10,      // 10 MB
-    maxRequestSize = 1024 * 1024 * 15    // 15 MB
+@MultipartConfig(fileSizeThreshold = 1024 * 1024 * 1, // 1 MB
+        maxFileSize = 1024 * 1024 * 10, // 10 MB
+        maxRequestSize = 1024 * 1024 * 15 // 15 MB
 )
 
 /*
- * During servlet initialization (init method), it scans a specified package for annotated methods (@RequestMapping) and RestAPI endpoints.
+ * During servlet initialization (init method), it scans a specified package for
+ * annotated methods (@RequestMapping) and RestAPI endpoints.
  * Matches incoming URLs to mappings and calls the appropriate handler methods.
- * If a request processing error occurs, it provides a user-friendly response with localized messages.
+ * If a request processing error occurs, it provides a user-friendly response
+ * with localized messages.
  */
 
 public class FrontController extends HttpServlet {
@@ -53,11 +54,26 @@ public class FrontController extends HttpServlet {
             this.checkerRestAPI = new RestAPIChecker();
 
             System.out.println("Début du scan des mappings RequestMapping");
+
+            List<Mapping> list = checker.getMappingClasses();
+            System.out.println("Liste des mappings après initialisation : ");
+            for (Mapping mapping : list) {
+                System.out.println(mapping.getMethodName() + " : " + mapping.getGranted());
+            }
+
             checker.getAllMethodMapping(context);
+
+            System.out.println("Liste des mappings après le scan : ");
+            for (Mapping mapping : checker.getMappingClasses()) {
+                System.out.println(mapping.getMethodName() + " : " + mapping.getGranted());
+            }
+
             System.out.println("Scan des mappings RequestMapping terminé");
 
             System.out.println("Début du scan des mappings RestAPI");
+
             checkerRestAPI.getAllMethodMapping(context);
+
             System.out.println("Scan des mappings RestAPI terminé");
 
         } catch (Throwable e) {
@@ -71,9 +87,9 @@ public class FrontController extends HttpServlet {
 
         try {
             String requestURL = request.getRequestURI();
-            String contextPath = request.getContextPath();  
+            String contextPath = request.getContextPath();
             String relativeUrl = requestURL.substring(contextPath.length());
-                        
+
             if (this.error == null) {
                 try {
                     Mapping mapping = checker.getMethodByURL(relativeUrl, request);
@@ -114,7 +130,5 @@ public class FrontController extends HttpServlet {
             throws ServletException, IOException {
         processRequest(request, response);
     }
-    
-   
 
 }

@@ -1,13 +1,17 @@
 package org.framework.annotation.security;
 
+import org.framework.session.CustomSession;
+import org.framework.viewScan.ViewScan;
+
 public class Role {
-    private static String role;
 
     public static void add(String role){
-        Role.role = role; // Assign to the class variable
+        CustomSession session=ViewScan.getCustomSession();
+        session.add("role", role);
     }
 
     public static String getRole() {
-        return role;
+        CustomSession session=ViewScan.getCustomSession();
+        return (String) session.get("role");
     }
 }

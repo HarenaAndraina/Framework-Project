@@ -1,6 +1,5 @@
 package com.model;
 
-import com.database.Postgres;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -10,9 +9,9 @@ import java.util.List;
 import com.database.Postgres;
 
 
-public class AvionModel {
+public class TypeSiegeModel {
     private int id;
-    private String num;
+    private String nom;
 
     public int getId() {
         return id;
@@ -22,28 +21,30 @@ public class AvionModel {
         this.id = id;
     }
 
-    public String getNum() {
-        return num;
+    public String getNom() {
+        return nom;
     }
 
-    public void setNum(String num) {
-        this.num = num;
+    public void setNom(String nom) {
+        this.nom = nom;
     }
 
-    public AvionModel() {
+   
+
+    public TypeSiegeModel(String nom) {
+        this.nom = nom;
     }
 
-    public AvionModel(int id, String num) {
+    public TypeSiegeModel(int id, String nom) {
         this.id = id;
-        this.num = num;
+        this.nom = nom;
     }
 
-    public AvionModel(String num) {
-        this.num = num;
+    public TypeSiegeModel() {
     }
 
-    public AvionModel getbyId(int id) throws Exception {
-        AvionModel avion = null;
+    public TypeSiegeModel getbyId(int id) throws Exception {
+        TypeSiegeModel typeSiege = null;
         Connection conn = null;
         PreparedStatement stmt = null;
         ResultSet rs = null;
@@ -58,7 +59,7 @@ public class AvionModel {
             conn = Postgres.getConnection(username, password, databaseName);
 
             // Query to retrieve a specific client by ID
-            query = "SELECT * FROM avion WHERE id = ?";
+            query = "SELECT * FROM type_siege WHERE id = ?";
             stmt = conn.prepareStatement(query);
             stmt.setInt(1, id);
 
@@ -66,9 +67,9 @@ public class AvionModel {
 
             if (rs.next()) {
                 // Populate the Client object with the retrieved data
-                avion = new AvionModel(
+                typeSiege = new TypeSiegeModel(
                         rs.getInt("id"),
-                        rs.getString("num"));
+                        rs.getString("nom"));
             }
         } catch (Exception e) {
             throw new Exception("Error executing SQL statement: " + e.getMessage() + ". SQL Statement: " + query, e);
@@ -84,14 +85,14 @@ public class AvionModel {
                 conn.close();
             }
         }
-        if (avion == null) {
+        if (typeSiege == null) {
             throw new Exception("Client null");
         }
-        return avion;
+        return typeSiege;
     }
-
-    public List<AvionModel> getAll() throws Exception {
-        List<AvionModel> avions = new ArrayList<>();
+    
+    public List<TypeSiegeModel> getAll() throws Exception {
+        List<TypeSiegeModel> typeSieges = new ArrayList<>();
 
         Connection conn = null;
         PreparedStatement stmt = null;
@@ -107,15 +108,15 @@ public class AvionModel {
             conn = Postgres.getConnection(username, password, databaseName);
 
             // Query to retrieve all records from the "depense" table
-            query = "SELECT * FROM avion";
+            query = "SELECT * FROM type_siege";
             stmt = conn.prepareStatement(query);
             rs = stmt.executeQuery();
 
             while (rs.next()) {
-                AvionModel avion = new AvionModel(
+                TypeSiegeModel typeSiege = new TypeSiegeModel(
                         rs.getInt("id"),
-                        rs.getString("num"));
-                avions.add(avion);
+                        rs.getString("nom"));
+                typeSieges.add(typeSiege);
             }
         } catch (Exception e) {
             throw new Exception("Error executing SQL statement: " + e.getMessage() + ". SQL Statement: " + query, e);
@@ -131,7 +132,6 @@ public class AvionModel {
                 conn.close();
             }
         }
-        return avions;
+        return typeSieges;
     }
-
 }
