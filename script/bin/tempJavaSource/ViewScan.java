@@ -16,11 +16,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+
 import org.framework.annotation.FieldParamName;
 import org.framework.annotation.FileParamName;
 import org.framework.File.FileParam;
 import org.framework.annotation.Param;
-import org.framework.annotation.security.GrantedFor;
+import org.framework.annotation.security.Role;
 import org.framework.checker.Mapping;
 import org.framework.checker.ParamChecker;
 import org.framework.checker.RequestMappingChecker;
@@ -61,7 +62,6 @@ import com.google.gson.Gson;
 
 public class ViewScan {
     private static CustomSession customSession;
-    private static String grantValueFor = "";
 
     public static String getJspByURL(String url) {
         // Split the normalized URL by '/'
@@ -96,15 +96,16 @@ public class ViewScan {
             if (customSession == null && mapRestAPI.isAuth()) {
                 throw new AuthConstraintException("Unauthorized: Controller need to be authentified");
             }
+
             if (mapRestAPI.isGrantedSet()) {
-                if (grantValueFor == null && !mapRestAPI.getGranted().isEmpty()) {
+                if (Role.getRole() == null ) {
                     throw new GrantConstraintException(
-                            "Access denied: You must add the GrantFor annotation to the CustomSession parameter of the method.");
+                            "Access denied: You must add the role value.");
                 }
 
-                if (!grantValueFor.equals(mapRestAPI.getGranted())) {
+                if (!Role.getRole().equals(mapRestAPI.getGranted())) {
                     throw new GrantedNotEqualException(
-                            "Access denied: The role of grantedFor does not match the role in the isGranted annotation.");
+                            "Access denied: The role name does not match the role in the isGranted annotation.");
                 }
             }
 
@@ -126,14 +127,16 @@ public class ViewScan {
 
             if (map.isGrantedSet()) {
                 System.out.println("atoooo");
-                if (grantValueFor.isBlank()) {
+                
+                if (Role.getRole()==null) {
                     throw new GrantConstraintException(
-                            "Access denied: You must add the GrantFor annotation to the CustomSession parameter of the method.");
+                            "Access denied: You must add the role value.");
                 }
 
-                if (!grantValueFor.equals(map.getGranted())) {
+                if (!Role.getRole().equals(map.getGranted())) {
+                    System.out.println(map.getGranted());
                     throw new GrantedNotEqualException(
-                            "Access denied: The role of grantedFor does not match the role in the isGranted annotation.");
+                            "Access denied: The role name does not match the role in the isGranted annotation.");
                 }
             }
 
@@ -148,7 +151,7 @@ public class ViewScan {
         String className = map.getClassName();
         String methodName = map.getMethodName();
         Object result = null;
-        System.out.println("processmap granted map "+ map.getGranted());
+        System.out.println("processmap granted map " + map.getGranted()+ " for method "+ map.getMethodName());
         try {
             result = invokingMethod(request, response, className, methodName);
         } catch (Exception e) {
@@ -197,10 +200,18 @@ public class ViewScan {
         } else if (result instanceof RedirectView) {
             RedirectView redirectView = (RedirectView) result;
 
+            HttpServletRequest modifiedRequest = new HttpServletRequestWrapper(request) {
+                @Override
+                public String getMethod() {
+                    return "GET"; // Override the method to GET
+                }
+            };
+
             RequestDispatcher dispatcher = null;
-            dispatcher = request.getRequestDispatcher(redirectView.getUrl());
+            dispatcher = modifiedRequest.getRequestDispatcher(redirectView.getUrl());
             System.out.println(redirectView.getUrl());
-            dispatcher.forward(request, response);
+            dispatcher.forward(modifiedRequest, response);
+
         } else {
             throw new ViewException("Unsupported return type for Web response");
         }
@@ -296,12 +307,6 @@ public class ViewScan {
                         syncHttpSessionToCustomSession(request);
                         CustomSession customSession = getCustomSession();
 
-                        if (parameters[i].isAnnotationPresent(GrantedFor.class)) {
-                            GrantedFor grantValue = parameters[i].getAnnotation(GrantedFor.class);
-                            grantValueFor = grantValue.value();
-                            System.out.println("grant value for "+ grantValueFor);
-                        }
-
                         args[i] = customSession;
                         idParamSession = i;
                     }
@@ -341,6 +346,7 @@ public class ViewScan {
                 }
 
                 result = method.invoke(instance, args);
+
                 syncCustomSessionToHttpSession(request);
             }
         } catch (Exception e) {
@@ -357,8 +363,13 @@ public class ViewScan {
         try {
             Object paramObject = paramClass.getDeclaredConstructor().newInstance();
             Field[] fields = paramClass.getDeclaredFields();
+
+            //valider le champ de l'objet injecter
             Validator valide = new Validator();
             valide.validate(fields, request, paramObject, paramName);
+            
+
+            //s'il y a une erreur
             Map<String, String> validationErrors = valide.getErrors();
 
             if (!validationErrors.isEmpty()) {
@@ -386,7 +397,10 @@ public class ViewScan {
                 RequestDispatcher dispatcher = modifiedRequest.getRequestDispatcher(getPREVURL(request));
                 dispatcher.forward(modifiedRequest, response);
             }
+
+
             args[i] = paramObject;
+            
         } catch (Exception e) {
             e.printStackTrace();
             throw new InvocationMethodException("Cannot access the field parameter");

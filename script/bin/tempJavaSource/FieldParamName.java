@@ -9,4 +9,5 @@ import java.lang.annotation.Target;
 @Target(ElementType.FIELD)
 public @interface FieldParamName {
     String value();
+    boolean foreign() default false; 
 }

@@ -1,12 +1,12 @@
 package org.framework.checker;
 
 public class Mapping {
-    private String className;
+    private  String className;
     private String methodName;
     private String url;
     private boolean isPost;
     private boolean isAuth;
-    static String grantedValue;
+    private final String grantedValue;
     private boolean grantedSet;
     
 
@@ -31,8 +31,7 @@ public class Mapping {
     }
     
     
-    public Mapping() {
-    }
+    
     public Mapping(String className, String methodName,String url) {
         this.className = className;
         this.methodName = methodName;
@@ -40,7 +39,19 @@ public class Mapping {
         this.isAuth=false;
         this.grantedSet=false;
         this.url=url;
+        this.grantedValue=null;
     }
+
+    public Mapping(String className, String methodName, String url, String granted, boolean grantedSet, boolean post, boolean auth) {
+        this.className = className;
+        this.methodName = methodName;
+        this.url = url;
+        this.grantedValue = granted;
+        this.grantedSet = grantedSet;
+        this.isPost = post;
+        this.isAuth = auth;
+    }
+
     
     public String getUrl() {
         return url;
@@ -57,9 +68,7 @@ public class Mapping {
     public String getGranted() {
         return grantedValue;
     }
-    public void setGranted(String granted) {
-        grantedValue = granted;
-    }
+    
     public boolean isGrantedSet() {
         return grantedSet;
     }
